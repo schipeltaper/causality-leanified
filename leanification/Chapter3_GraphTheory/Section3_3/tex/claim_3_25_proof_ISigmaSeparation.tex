@@ -24,18 +24,274 @@
 \def\rowref{claim\_3\_25}
 \phantomsection\label{claim_3_25}
 
-% --- statement (restated) ---------------------------------------------------
+% --- statement (restated, synced verbatim from
+% --- claim_3_25_statement_ISigmaSeparation.tex) -----------------------------
 \begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
-        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
-        be subsets of nodes such that:
-        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
-        Then we have the equivalence:
-        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definition of def \ref{def:walks}, item~i., the family-relationships definition of def \ref{def_3_5} (we write $\Anc^H(C) := \bigcup_{c \in C} \Anc^H(c)$ for the ancestor set of a subset $C$ in an arbitrary CDMG $H$, using def \ref{def_3_5}, item~iv., per the convention recorded in the ``Ancestor set of $C$'' paragraph of def \ref{def:sigma_blocking}), the collider/non-collider classification of positions on a walk of def \ref{def:collider_noncollider}, item~ii., the blockable/unblockable non-collider refinement of def \ref{def:unblockable_noncollider}, the $\sigma$-blocking predicate ``$\pi$ is $C$-$\sigma$-blocked'' (equivalently ``$\sigma$-blocked given $C$'') of def \ref{def:sigma_blocking} (``$C$-$\sigma$-blocked walk'' paragraph), the marginalization operator $G^{\sm \cdot}$ of def \ref{def:G_marginalization}, and the $i\sigma$-separation predicate of def \ref{def:sigma_separation}, item~1. Let
+    \[
+        A,\, B,\, C \;\ins\; J \cup V
+        \qquad\text{and}\qquad
+        D \;\ins\; V
+    \]
+    be subsets of nodes. The triple $A$, $B$, $C$ is \emph{not} assumed to be pairwise disjoint, nor disjoint from the input-node set $J$, nor non-empty (matching the permissiveness of def \ref{def:sigma_separation}, item~1, on its three argument-sets). The typing $D \ins V$ is the precondition of the marginalization operator of def \ref{def:G_marginalization} (which is only defined when its target is a subset of the output-node set $V$); the case $D = \emptyset$ is admitted (then $G^{\sm D} = G$ verbatim under def \ref{def:G_marginalization}, items~i.--iv., and the equivalence below trivialises). Suppose, in addition, that
+    \[
+        D \cap \lp A \cup B \cup C \rp \;=\; \emptyset.
+    \]
+
+    \emph{Recall: the marginalized CDMG $G^{\sm D}$ (def \ref{def:G_marginalization} with $W = D$).}
+    The marginalization $G^{\sm D}$ is the CDMG
+    \[
+        G^{\sm D} \;=\; \lp J^{\sm D},\, V^{\sm D},\, E^{\sm D},\, L^{\sm D} \rp,
+    \]
+    whose four components are given by items~i.--iv.\ of def \ref{def:G_marginalization}:
+    \[
+        J^{\sm D} \;=\; J,
+        \qquad
+        V^{\sm D} \;=\; V \sm D,
+    \]
+    and $E^{\sm D} \ins (J \cup (V \sm D)) \times (V \sm D)$, $L^{\sm D} \ins (V \sm D) \times (V \sm D)$ are the directed- and bidirected-edge sets witnessed, respectively, by the directed-walk-through-$D$ predicate $\Phi_E$ of def \ref{def:G_marginalization}, item~iii., and the bifurcation-through-$D$ predicate $\Phi_L$ of def \ref{def:G_marginalization}, item~iv.\ (with the standing $\ul{v} \ne \ol{v}$ constraint on $L^{\sm D}$ and the end-node arrowhead constraint of clause~(f) of item~iv.). The carrier of $G^{\sm D}$ is
+    \[
+        J^{\sm D} \cup V^{\sm D} \;=\; J \cup (V \sm D),
+    \]
+    and the input-node set is preserved verbatim: $J^{\sm D} = J$.
+
+    \emph{Well-typedness of $A$, $B$, $C$ as subsets of the carrier of $G^{\sm D}$.}
+    From $A, B, C \ins J \cup V$, the disjointness hypothesis $D \cap (A \cup B \cup C) = \emptyset$, $D \ins V$, and $J \cap V = \emptyset$ (def \ref{def-cdmg}) it follows that
+    \[
+        A,\, B,\, C \;\ins\; (J \cup V) \sm D \;=\; J \cup (V \sm D) \;=\; J^{\sm D} \cup V^{\sm D}.
+    \]
+    Hence the $i\sigma$-separation predicate of def \ref{def:sigma_separation}, item~1, instantiated on the CDMG $G^{\sm D}$ with the same triple $(A, B, C)$ is well-typed on the right-hand side of the equivalence below (its argument-sets are subsets of the carrier of the CDMG on which it is evaluated).
+
+    \emph{The equivalence (with $i\sigma$-separation unfolded inline on both sides per def \ref{def:sigma_separation}, item~1).}
+    The following two universal statements are equivalent:
+    \begin{enumerate}
+        \item For every integer $n \ge 0$ and every walk
+            \[
+                \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+            \]
+            in $G$ in the sense of def \ref{def:walks}, item~i.\ (so $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$ relative to $E, L$:
+            \[
+                \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+                \;\lor\;
+                \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr)\,)
+            \]
+            with $v_0 \in A$ and $v_n \in J \cup B$, the walk $\pi$ is $C$-$\sigma$-blocked in $G$ in the sense of def \ref{def:sigma_blocking} (``$C$-$\sigma$-blocked walk'' paragraph): there exists a position $k \in \{0, 1, \dots, n\}$ such that either ($k$ is a collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~ii.\ computed relative to the edges of $G$, and $v_k \notin \Anc^G(C)$), or ($k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider} computed relative to the edges of $G$, and $v_k \in C$); the ancestor set on the right-hand side of each existential clause is $\Anc^G(C) = \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv., computed in $G$.
+
+        \item For every integer $n \ge 0$ and every walk
+            \[
+                \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+            \]
+            in $G^{\sm D}$ in the sense of def \ref{def:walks}, item~i.\ \emph{applied to the CDMG $G^{\sm D}$ in place of $G$} (so $v_0, \dots, v_n \in J^{\sm D} \cup V^{\sm D} = J \cup (V \sm D)$ and $a_0, \dots, a_{n-1} \in E^{\sm D} \cup L^{\sm D}$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$ relative to $E^{\sm D}, L^{\sm D}$:
+            \[
+                \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E^{\sm D} \cup L^{\sm D}\bigr)
+                \;\lor\;
+                \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E^{\sm D}\bigr)\,)
+            \]
+            with $v_0 \in A$ and $v_n \in J \cup B$ (the asymmetric right-endpoint inclusion of def \ref{def:sigma_separation}, item~1, instantiated on the CDMG $G^{\sm D}$ reads ``$v_n \in J^{\sm D} \cup B$''; using $J^{\sm D} = J$ recorded above, this is exactly $v_n \in J \cup B$), the walk $\pi$ is $C$-$\sigma$-blocked in $G^{\sm D}$ in the sense of def \ref{def:sigma_blocking} \emph{applied to the CDMG $G^{\sm D}$ in place of $G$} (``$C$-$\sigma$-blocked walk'' paragraph): there exists a position $k \in \{0, 1, \dots, n\}$ such that either ($k$ is a collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~ii.\ computed relative to the edges of $G^{\sm D}$, and $v_k \notin \Anc^{G^{\sm D}}(C)$), or ($k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider} computed relative to the edges of $G^{\sm D}$, and $v_k \in C$); the ancestor set on the right-hand side of each existential clause is $\Anc^{G^{\sm D}}(C) = \bigcup_{c \in C} \Anc^{G^{\sm D}}(c)$ from def \ref{def_3_5}, item~iv., \emph{computed in $G^{\sm D}$} (not in $G$).
+    \end{enumerate}
+
+    \emph{Reading of the equivalence.}
+    Statements (1) and (2) are, respectively, the unfolded forms of ``$A$ is $i\sigma$-separated from $B$ given $C$ in $G$'' and ``$A$ is $i\sigma$-separated from $B$ given $C$ in $G^{\sm D}$'' under def \ref{def:sigma_separation}, item~1, instantiated on the two distinct CDMGs $G$ and $G^{\sm D}$ (the LN states the equivalence using the $\isPerp$ notation of def \ref{def:sigma_separation}, item~1, which is in this rewrite expanded inline as~(1) and~(2) so the spec is self-contained). The lemma asserts that these two universal statements are equivalent, despite the fact that switching from $G$ to $G^{\sm D}$ in general changes the carrier (from $J \cup V$ to $J \cup (V \sm D)$), the edge sets (from $E, L$ to $E^{\sm D}, L^{\sm D}$), the class of walks quantified over, the collider / blockable-non-collider classifications of positions on those walks (each computed relative to the edges of the CDMG in question), and the ancestor set used in the collider clause of $\sigma$-blocking (from $\Anc^G(C)$ to $\Anc^{G^{\sm D}}(C)$); the only data shared verbatim across the two sides are the input-node set $J^{\sm D} = J$, the triple $(A, B, C)$, and the conditioning role of $C$ inside the $\sigma$-blocking predicate.
 \end{Lem}
 
 % --- proof ------------------------------------------------------------------
+% Proof reproduced from the LN's commented-out draft at
+% lecture-notes/lecture_notes/graphs.tex:1424--1579 (the `\Claude{...}` block
+% immediately following the claim), with citations rewritten to use \refrow{...}
+% and minor phrasing tidies for self-containedness.
 \begin{proof}
-% TODO: write the proof body.
+We prove the equivalence between statement~(1) and statement~(2) of the lemma above (i.e.\ $A \isPerp_G B \given C \iff A \isPerp_{G^{\sm D}} B \given C$ in the $\isPerp$-notation of def \ref{def:sigma_separation}, item~1).
+
+\medskip\noindent\emph{Step 1 -- reduction to one-node marginalization.}
+We argue by induction on $\#D$ that it suffices to prove the lemma in the special case where $D = \{u\}$ is a single node $u \in V \sm (A \cup B \cup C)$.
+
+If $\#D = 0$, then $D = \emptyset$, and by def \ref{def:G_marginalization}, items~i.--iv., $G^{\sm \emptyset} = G$ verbatim (the predicates $\Phi_E$ and $\Phi_L$ then reduce to ``the edge already lies in $E$ resp.\ $L$''); the equivalence is trivially the reflexive equivalence.
+
+If $\#D \ge 1$, pick any $u \in D$ and let $D' := D \sm \{u\}$ (so $\#D' = \#D - 1$). By \refrow{claim_3_17} (Marginalizations commute and compose: $G^{\sm (W_1 \cup W_2)} = (G^{\sm W_1})^{\sm W_2}$ for $W_1, W_2 \ins V$ disjoint), instantiated at $W_1 = \{u\}$ and $W_2 = D'$,
+\[
+    G^{\sm D} \;=\; G^{\sm (\{u\} \cup D')} \;=\; \bigl(G^{\sm \{u\}}\bigr)^{\sm D'}.
+\]
+The disjointness hypothesis $D \cap (A \cup B \cup C) = \emptyset$ restricts to $\{u\} \cap (A \cup B \cup C) = \emptyset$ and $D' \cap (A \cup B \cup C) = \emptyset$; the typing $D \ins V$ restricts to $\{u\} \ins V$ and $D' \ins V$. Hence the special case ($D = \{u\}$) applied to $G$ yields
+\[
+    A \isPerp_G B \given C \;\iff\; A \isPerp_{G^{\sm \{u\}}} B \given C,
+\]
+and the inductive hypothesis ($\#D'$-case) applied to the CDMG $G^{\sm \{u\}}$ and the set $D'$ -- noting that $D' \ins V$ implies $D' \ins V^{\sm \{u\}} \cup \{u\} \subseteq V$, but more precisely $D' \ins V \sm \{u\} = V^{\sm \{u\}}$ because $u \notin D'$, so the typing precondition of the lemma is met on $G^{\sm \{u\}}$ -- yields
+\[
+    A \isPerp_{G^{\sm \{u\}}} B \given C \;\iff\; A \isPerp_{(G^{\sm \{u\}})^{\sm D'}} B \given C.
+\]
+Chaining the two equivalences and using $(G^{\sm \{u\}})^{\sm D'} = G^{\sm D}$ closes the induction step.
+
+It therefore remains to prove the case $D = \{u\}$ for an arbitrary $u \in V$ with $u \notin A \cup B \cup C$. We write $G^{\sm u}$ for $G^{\sm \{u\}}$ throughout the rest of the proof.
+
+\medskip\noindent\emph{Step 2 -- preparatory facts on the one-node marginalization $G^{\sm u}$.}
+We record three preparatory facts that will be used both ways below.
+
+\smallskip\noindent\emph{(a) Ancestral relations are preserved on the carrier of $G^{\sm u}$.}
+By \refrow{claim_3_16} (marginalization preserves ancestors, bifurcations, and acyclicity), for every $v_1, v_2 \in (J \cup V) \sm \{u\}$,
+\begin{equation}\tag{$\star$}\label{eq:anc_preserved_25}
+    v_1 \in \Anc^G(v_2) \;\iff\; v_1 \in \Anc^{G^{\sm u}}(v_2).
+\end{equation}
+Specializing to the union over the conditioning set $C$ and using $u \notin C$ (from $\{u\} \cap (A \cup B \cup C) = \emptyset$, hence $C \ins (J \cup V) \sm \{u\}$):
+\[
+    \Anc^{G^{\sm u}}(C) \;=\; \Anc^G(C) \,\cap\, \bigl((J \cup V) \sm \{u\}\bigr).
+\]
+In particular, $C \subseteq \Anc^{G^{\sm u}}(C)$ (since $C \subseteq \Anc^G(C)$ by the reflexivity clause of def \ref{def_3_5}, item~iv., and $C \cap \{u\} = \emptyset$).
+
+\smallskip\noindent\emph{(b) Strongly-connected components are preserved on $V \sm \{u\}$.}
+For every $v \in V \sm \{u\}$,
+\begin{equation}\tag{$\star\star$}\label{eq:sc_preserved_25}
+    \Sc^{G^{\sm u}}(v) \;=\; \Sc^G(v) \,\sm\, \{u\}.
+\end{equation}
+Indeed, $\Sc^H(v) = \Anc^H(v) \cap \Desc^H(v)$ for any CDMG $H$ by def \ref{def_3_5}, item~vii.; applying \eqref{eq:anc_preserved_25} to $\Anc$ and the dual ancestor/descendant statement of \refrow{claim_3_16} (or equivalently, applying \eqref{eq:anc_preserved_25} with the roles of $v_1$ and $v_2$ swapped, since $\Desc^H(v_2) = \{v_1 : v_2 \in \Anc^H(v_1)\}$) to $\Desc$ on $(J \cup V) \sm \{u\}$ yields
+\[
+    \Sc^{G^{\sm u}}(v) \;=\; \Anc^{G^{\sm u}}(v) \cap \Desc^{G^{\sm u}}(v) \;=\; \bigl(\Anc^G(v) \cap \Desc^G(v)\bigr) \cap \bigl((J \cup V) \sm \{u\}\bigr) \;=\; \Sc^G(v) \sm \{u\}.
+\]
+
+\smallskip\noindent\emph{(c) Edge-lifting taxonomy.}
+Every edge in $G^{\sm u}$ corresponds to a short walk in $G$ that passes through $u$ at most once. Concretely, by def \ref{def:G_marginalization}, items~iii.--iv.\ instantiated at $W = \{u\}$:
+\begin{itemize}
+    \item A directed edge $v \tuh w \in E^{\sm u}$ is witnessed by a directed walk in $G$ from $v$ to $w$ whose intermediate nodes lie in $\{u\}$. Restricting to short witnesses, this is one of the two patterns
+        \[
+            v \tuh w \in E \qquad \text{or} \qquad v \tuh u \tuh w \quad \text{with } v \tuh u, \, u \tuh w \in E.
+        \]
+    \item A bidirected edge $v \huh w \in L^{\sm u}$ is witnessed by a bifurcation in $G$ through $\{u\}$ in the sense of def \ref{def:G_marginalization}, item~iv. Restricting to short witnesses (with at most one intermediate occurrence of $u$), this is one of the four patterns
+        \[
+            v \huh w \in L, \qquad v \hut u \tuh w, \qquad v \huh u \tuh w, \qquad v \hut u \huh w,
+        \]
+        where each two-edge pattern uses the corresponding directed and bidirected edges of $G$. In every two-edge case the intermediate node $u$ is a \emph{non-collider}: it has at most one arrowhead from the two flanking edges (the ``$\tuh u \tuh$'' tail-to-head pass-through, or the ``$\hut u \tuh$'' / ``$\tuh u \huh$'' fork-style patterns, all of which leave at most one arrowhead pointing into $u$).
+\end{itemize}
+Longer witnessing walks/bifurcations through repeated self-loop traversals of $u$ exist in principle, but every such witness can be shortened to one of the above patterns by collapsing $u \to u$ self-loop segments; the case analysis below is therefore w.l.o.g.\ over the short witnesses.
+
+\medskip\noindent\emph{Step 3 -- $(1) \implies (2)$: every $C$-$\sigma$-blocked-in-$G$ regime forces every $C$-$\sigma$-blocked-in-$G^{\sm u}$ regime.}
+We argue the contrapositive: starting from a $C$-$\sigma$-open walk in $G^{\sm u}$ from $A$ to $J \cup B$, we construct a $C$-$\sigma$-open walk in $G$ from $A$ to $J \cup B$.
+
+Let
+\[
+    \pi' \;=\; (b_0,\, a'_0,\, b_1,\, a'_1,\, \dots,\, b_{s-1},\, a'_{s-1},\, b_s)
+\]
+be a $C$-$\sigma$-open walk in $G^{\sm u}$ (in the sense of def \ref{def:sigma_blocking}, item~1, evaluated on $G^{\sm u}$) with $b_0 \in A$ and $b_s \in J \cup B$. Since $u \notin A \cup B$ and $u \notin J$ (because $u \in V$ and $J \cap V = \emptyset$ by def \ref{def-cdmg}), the endpoints satisfy $b_0, b_s \ne u$; in fact every $b_j \in J^{\sm u} \cup V^{\sm u} = J \cup (V \sm \{u\})$ so $b_j \ne u$ for all $j$.
+
+\smallskip\noindent\emph{Lift each edge of $\pi'$ to a short walk segment in $G$.}
+For each edge $a'_j$ of $\pi'$, apply taxonomy~(c) of Step~2: replace the single edge $b_j \sus_{a'_j} b_{j+1}$ of $\pi'$ by one of the corresponding witnesses in $G$. Concretely, $b_j \sus_{a'_j} b_{j+1}$ becomes either the same single edge already present in $G$, or a two-edge segment $b_j \sus u \sus b_{j+1}$ in $G$ with the arrowhead types at $b_j$ and $b_{j+1}$ matching the arrowhead types of the original $a'_j$ at $b_j$ and $b_{j+1}$, respectively (per taxonomy~(c)). Concatenating these segments in order yields a walk
+\[
+    \pi \;=\; (b_0,\, \dots,\, b_1,\, \dots,\, b_2,\, \dots,\, b_s)
+\]
+in $G$ from $b_0$ to $b_s$.
+
+\smallskip\noindent\emph{Arrowhead types at the non-$u$ nodes $b_j$ are preserved.}
+By construction (taxonomy~(c)), the arrowhead type towards $b_j$ from the incoming edge $a'_{j-1}$ of $\pi'$ matches the arrowhead type towards $b_j$ from the (last) edge entering $b_j$ in the corresponding segment of $\pi$; the same holds at $b_j$ from the outgoing side. Consequently, the collider / non-collider classification of position $b_j$ on $\pi$ (relative to the edges of $G$, in the sense of def \ref{def:collider_noncollider}, item~ii.) coincides with that of position $b_j$ on $\pi'$ (relative to the edges of $G^{\sm u}$). The blockable / unblockable refinement of def \ref{def:unblockable_noncollider} at $b_j$ depends additionally on $\Sc^G(b_j)$ vs $\Sc^{G^{\sm u}}(b_j)$; by~\eqref{eq:sc_preserved_25}, $\Sc^G(b_j) = \Sc^{G^{\sm u}}(b_j) \cup \{u\}$ if $u \in \Sc^G(b_j)$ and $\Sc^G(b_j) = \Sc^{G^{\sm u}}(b_j)$ otherwise, so $\Sc^G(b_j) \supseteq \Sc^{G^{\sm u}}(b_j)$ in either case.
+
+We now verify $\sigma$-openness of $\pi$ position by position.
+
+\smallskip\noindent\emph{(i) Colliders on $\pi$ at a $b_j$ position.}
+Suppose position $b_j$ is a collider on $\pi$. By preservation of arrowhead types, $b_j$ is also a collider on $\pi'$. Since $\pi'$ is $C$-$\sigma$-open in $G^{\sm u}$ and $b_j$ is a collider on $\pi'$, def \ref{def:sigma_blocking}, item~1.i.\ (evaluated on $G^{\sm u}$) gives $b_j \in \Anc^{G^{\sm u}}(C)$. By~\eqref{eq:anc_preserved_25}, $\Anc^{G^{\sm u}}(C) \subseteq \Anc^G(C)$, so $b_j \in \Anc^G(C)$. Hence $b_j$ satisfies the collider clause of $\sigma$-openness on $\pi$.
+
+\smallskip\noindent\emph{(ii) Blockable non-colliders on $\pi$ at a $b_j$ position.}
+Suppose position $b_j$ is a blockable non-collider on $\pi$ (def \ref{def:unblockable_noncollider} read on $G$). By preservation of arrowhead types, $b_j$ is a non-collider on $\pi'$ as well. The blockable / unblockable status on $\pi'$ may differ from that on $\pi$ (the move from $G$ to $G^{\sm u}$ shrinks $\Sc$ by~\eqref{eq:sc_preserved_25}, hence may turn an unblockable non-collider on $\pi'$ into a blockable non-collider on $\pi$, but cannot turn a blockable non-collider on $\pi'$ into something other than a blockable or unblockable non-collider on $\pi$). In every case, $b_j$ is a non-collider on $\pi'$. To certify the $\sigma$-openness of $\pi$ at $b_j$ in the blockable case, def \ref{def:sigma_blocking}, item~1.ii.\ demands $b_j \notin C$. If $b_j$ is a blockable non-collider on $\pi'$, then $b_j \notin C$ by $\sigma$-openness of $\pi'$ at the same position. If $b_j$ is an unblockable non-collider on $\pi'$, then $b_j \notin C$ is automatic from $\sigma$-openness of $\pi'$ at $b_j$ as well -- the unblockable-non-collider clause of $\sigma$-openness (def \ref{def:unblockable_noncollider}; cf.\ \refrow{claim_3_21}) imposes no constraint on $b_j$'s membership in $C$, but combined with the side data we have $b_j \in C$ would still be admissible. We therefore handle this remaining sub-case directly: if $b_j \in C$, then taxonomy~(c) entails $b_j \notin C$ for $b_j$ visited on $\pi'$ as an unblockable non-collider position only \emph{if} the position is a blockable non-collider on $\pi$, in which case we revisit below by case-splitting on the outgoing-edge type.
+
+To eliminate the dependency just signposted, we reorganize cases~(ii) and~(iii) jointly via the disjunction ``$b_j \in C$ or $b_j \notin C$''.
+
+\emph{Joint treatment of (ii) and (iii).} Let $b_j$ be any non-collider position on $\pi$. By preservation of arrowhead types, $b_j$ is a non-collider on $\pi'$. We split on $b_j \in C$:
+\begin{itemize}
+    \item If $b_j \notin C$, the blockable-non-collider clause of $\sigma$-openness at $b_j$ on $\pi$ is satisfied automatically; if instead $b_j$ is unblockable on $\pi$, the unblockable-non-collider clause is satisfied by \refrow{claim_3_21} (unblockable non-colliders are always $C$-$\sigma$-open, regardless of $C$). Either way, $\pi$ is $\sigma$-open at $b_j$.
+    \item If $b_j \in C$, then $b_j$ is necessarily an unblockable non-collider on $\pi'$ (since $\sigma$-openness of $\pi'$ at $b_j$ together with the blockable-clause's $b_j \notin C$ would be contradicted by $b_j \in C$; hence $b_j$ falls under the unblockable-clause on $\pi'$, which by def \ref{def:unblockable_noncollider} is the only $\sigma$-open option for a non-collider in $C$). By def \ref{def:unblockable_noncollider}, every outgoing directed edge of $\pi'$ at $b_j$ goes to a node in $\Sc^{G^{\sm u}}(b_j)$.
+
+    We claim that $b_j$ is also unblockable on $\pi$. Take any outgoing directed edge of $\pi$ at $b_j$, say $b_j \tuh x$ where $x$ is the next node visited on $\pi$ along that outgoing direction. There are two cases:
+    \begin{enumerate}
+        \item[(a)] If the outgoing edge of $\pi$ at $b_j$ comes from the ``identity'' lifting of the corresponding outgoing edge of $\pi'$ at $b_j$ (no $u$-insertion), then $x = b_{j \pm 1}$ (the same $\pi'$-neighbour) and $x \in \Sc^{G^{\sm u}}(b_j) \subseteq \Sc^G(b_j)$ by~\eqref{eq:sc_preserved_25}.
+        \item[(b)] If the outgoing edge of $\pi$ at $b_j$ comes from a two-edge lifting $b_j \tuh u \sus b_{j \pm 1}$ of an outgoing edge $b_j \sus b_{j \pm 1}$ of $\pi'$, then $x = u$ and we need $u \in \Sc^G(b_j)$. By taxonomy~(c) the two-edge lifting has $b_j \tuh u$ and (depending on bifurcation type) either $u \tuh b_{j \pm 1}$ or $u \huh b_{j \pm 1}$. In every two-edge case for an unblockable non-collider on $\pi'$ at $b_j$ \emph{whose outgoing edge of $\pi'$ goes to $b_{j \pm 1} \in \Sc^{G^{\sm u}}(b_j)$}, we have $b_{j \pm 1} \in \Sc^G(b_j)$ by~\eqref{eq:sc_preserved_25}. In particular, $b_j \tuh u \tuh b_{j \pm 1}$ implies a directed path $u \to b_{j \pm 1} \to \cdots \to b_j$ in $G$ from $u$ (via $b_{j \pm 1}$, which can reach $b_j$ inside $\Sc^G(b_{j \pm 1}) = \Sc^G(b_j)$ by def \ref{def_3_5}, item~vii.), and combined with $b_j \tuh u$ this gives $u \in \Anc^G(b_j) \cap \Desc^G(b_j) = \Sc^G(b_j)$. For the fork/hinge bifurcation cases producing a bidirected lift $b_j \huh b_{j \pm 1}$ in $L^{\sm u}$, the outgoing edge of $\pi$ at $b_j$ is the bidirected edge itself (no $u$-insertion in the walk-segment direction $b_j \tuh u$), so this sub-case does not arise.
+
+        Hence in case~(b), $u = x \in \Sc^G(b_j)$, as needed.
+    \end{enumerate}
+    In both~(a) and~(b), every outgoing directed edge of $\pi$ at $b_j$ goes to a node in $\Sc^G(b_j)$, so $b_j$ is an unblockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider} computed on $G$. By \refrow{claim_3_21}, $\pi$ is $\sigma$-open at $b_j$.
+\end{itemize}
+This concludes the verification of $\sigma$-openness at every $b_j$ on $\pi$.
+
+\smallskip\noindent\emph{(iv) Inserted $u$-nodes on $\pi$.}
+Each newly inserted position $u$ on $\pi$ (from a two-edge lifting in taxonomy~(c)) is a non-collider, since taxonomy~(c) explicitly guarantees that the two flanking edges leave at most one arrowhead at $u$. Moreover $u \notin C$ (from $\{u\} \cap (A \cup B \cup C) = \emptyset$), so the blockable-non-collider clause of $\sigma$-openness at the inserted $u$-position is satisfied (regardless of whether $u$ is blockable or unblockable on $\pi$); in the unblockable sub-case, \refrow{claim_3_21} again applies. Hence $\pi$ is $\sigma$-open at every inserted $u$-position.
+
+\smallskip
+We have verified that $\pi$ is $C$-$\sigma$-open in $G$ at every position. Since $\pi$ is a walk in $G$ from $b_0 \in A$ to $b_s \in J \cup B$, the negation of statement~(1) holds. Contrapositively, statement~(1) implies statement~(2).
+
+\medskip\noindent\emph{Step 4 -- $(2) \implies (1)$: every $C$-$\sigma$-blocked-in-$G^{\sm u}$ regime forces every $C$-$\sigma$-blocked-in-$G$ regime.}
+Again we argue the contrapositive: starting from a $C$-$\sigma$-open walk in $G$ from $A$ to $J \cup B$, we construct a $C$-$\sigma$-open walk in $G^{\sm u}$ from $A$ to $J \cup B$.
+
+By \refrow{claim_3_23}, item~(3) (the ``$C$-$\sigma$-open walk with all colliders in $C$'' clause), starting from the assumed $C$-$\sigma$-open walk in $G$ from $A$ to $J \cup B$ we may choose a witness walk
+\[
+    \pi \;=\; (v_0,\, a_0,\, v_1,\, a_1,\, \dots,\, v_{n-1},\, a_{n-1},\, v_n)
+\]
+in $G$ with $v_0 \in A$, $v_n \in J \cup B$, $\pi$ $C$-$\sigma$-open in $G$, \emph{and} every collider position on $\pi$ lying in $C$ (not merely in $\Anc^G(C)$).
+
+\smallskip\noindent\emph{Properties of $u$ on $\pi$.}
+Since $u \notin C$ (from $\{u\} \cap (A \cup B \cup C) = \emptyset$) and every collider on $\pi$ lies in $C$, $u$ is a non-collider at every position where it appears on $\pi$. Since $u \notin A \cup B$ and $u \notin J$ (as $u \in V$ and $J \cap V = \emptyset$ by def \ref{def-cdmg}), $u$ is not an endpoint of $\pi$.
+
+\smallskip\noindent\emph{Contraction across $u$-runs.}
+Let $b_0 := v_0$, $b_{r+1} := v_n$, and let $b_1, b_2, \dots, b_r$ be the non-$u$ nodes visited by $\pi$ in order (in the positions $0 = k_0 < k_1 < \dots < k_r < k_{r+1} = n$), so that the sub-walks $(v_{k_l}, a_{k_l}, v_{k_l + 1}, \dots, v_{k_{l+1}})$ of $\pi$ visit $u$ at every intermediate position. (If $u$ does not appear on $\pi$ at all, then $\pi$ is already a walk in $G^{\sm u}$ -- every edge of $\pi$ is in $E$ or $L$ and connects nodes in $J \cup (V \sm \{u\})$, hence still lies in $E^{\sm u}$ or $L^{\sm u}$ by the inclusion clause of def \ref{def:G_marginalization}, items~iii.--iv. -- and we may take $\pi' := \pi$, $\sigma$-openness of which on $G^{\sm u}$ is inherited verbatim modulo only the $\Anc^G \to \Anc^{G^{\sm u}}$ change handled by~\eqref{eq:anc_preserved_25} for collider positions in $C \subseteq \Anc^{G^{\sm u}}(C)$.)
+
+For each consecutive pair $(b_l, b_{l+1})$ of non-$u$ nodes, the subwalk
+\[
+    \sigma_l \;:=\; (b_l = v_{k_l},\, a_{k_l},\, v_{k_l + 1},\, \dots,\, v_{k_{l+1}} = b_{l+1})
+\]
+has every intermediate node equal to $u$, and at each such intermediate $u$-position $u$ is a non-collider (as just argued). We claim that this subwalk yields a single contracted edge in $G^{\sm u}$, with the arrowhead types at $b_l$ and $b_{l+1}$ preserved.
+
+\smallskip\noindent\emph{Case A: no intermediate $u$-position (i.e.\ $k_{l+1} = k_l + 1$).}
+Then $\sigma_l = (b_l, a_{k_l}, b_{l+1})$ is a single edge, and the underlying edge of $a_{k_l}$ is either a directed edge $b_l \tuh b_{l+1}$ (or $b_{l+1} \tuh b_l$) in $E$, or a bidirected edge $b_l \huh b_{l+1}$ in $L$. In either case the same edge lies in $E^{\sm u}$ (resp.\ $L^{\sm u}$) by the inclusion clause of def \ref{def:G_marginalization}, items~iii.--iv., with identical arrowhead types at $b_l$ and $b_{l+1}$.
+
+\smallskip\noindent\emph{Case B: exactly one intermediate $u$-position.}
+Then $\sigma_l = (b_l, a_{k_l}, u, a_{k_l + 1}, b_{l+1})$ has length two. Up to left-right reflection, the local pattern at $u$ (given $u$ is a non-collider with at most one incoming arrowhead) is one of the following:
+\[
+    \begin{array}{rclcl}
+        b_l \tuh u \tuh b_{l+1} & \;\longrightarrow\; & b_l \tuh b_{l+1} \in E^{\sm u} & \quad & \text{(directed pass-through)} \\
+        b_l \hut u \tuh b_{l+1} & \;\longrightarrow\; & b_l \huh b_{l+1} \in L^{\sm u} & \quad & \text{(fork bifurcation)} \\
+        b_l \huh u \tuh b_{l+1} & \;\longrightarrow\; & b_l \huh b_{l+1} \in L^{\sm u} & \quad & \text{(left hinge bifurcation)}.
+    \end{array}
+\]
+The reflected three patterns (with $b_l$ and $b_{l+1}$ swapped in the underlying edges) are handled symmetrically. In every case the contracted edge in $G^{\sm u}$ is witnessed by the directed-walk-through-$\{u\}$ or bifurcation-through-$\{u\}$ clauses of def \ref{def:G_marginalization}, items~iii.--iv.\ instantiated at $W = \{u\}$, and the arrowhead types at $b_l$ and $b_{l+1}$ in the contracted edge match the arrowhead types of $a_{k_l}$ at $b_l$ and of $a_{k_l + 1}$ at $b_{l+1}$, respectively.
+
+\smallskip\noindent\emph{Case C: more than one intermediate $u$-position.}
+The intermediate positions on $\sigma_l$ are all occurrences of $u$, separated by edges in $E \cup L$ with $u$ as both endpoints. Each such ``$u$ to $u$'' step is either a directed self-loop $u \tuh u \in E$ (traversed in either direction) or a bidirected self-loop $u \huh u \in L$. Collapsing each maximal run of $u$ self-loops yields an equivalent two-edge witness $b_l \sus u \sus b_{l+1}$ falling under Case~B (because the directed-walk and bifurcation predicates of def \ref{def:G_marginalization}, items~iii.--iv.\ are insensitive to self-loop padding inside $\{u\}$), so this case reduces to Case~B without changing the arrowhead types at $b_l$ and $b_{l+1}$.
+
+\smallskip
+Assembling the contracted edges in order yields a walk
+\[
+    \pi' \;=\; (b_0,\, a'_0,\, b_1,\, a'_1,\, \dots,\, b_r,\, a'_r,\, b_{r+1})
+\]
+in $G^{\sm u}$ from $v_0$ to $v_n$.
+
+\smallskip\noindent\emph{Arrowhead types and collider classification at each $b_l$ are preserved.}
+By the case analysis above, the arrowhead type towards $b_l$ from the (last) edge into $b_l$ on $\sigma_{l-1}$ equals the arrowhead type towards $b_l$ from $a'_{l-1}$, and analogously for the outgoing side via $\sigma_l$ vs $a'_l$. Hence position $b_l$ is a collider on $\pi'$ in $G^{\sm u}$ iff it is a collider on $\pi$ in $G$ at position $k_l$. The non-collider status (collider negation) is therefore also preserved.
+
+\smallskip\noindent\emph{Verifying $\sigma$-openness of $\pi'$ at each $b_l$.}
+We verify the two clauses of def \ref{def:sigma_blocking}, item~1, evaluated on $G^{\sm u}$.
+
+\textbullet\ \emph{Colliders.}
+A collider $b_l$ on $\pi'$ is also a collider on $\pi$, hence by the strengthened-collider property of the chosen witness $\pi$ (from \refrow{claim_3_23}, item~(3)), $b_l \in C$. Since $C \subseteq \Anc^{G^{\sm u}}(C)$ by~\eqref{eq:anc_preserved_25} (specialized after Step~2(a)), $b_l \in \Anc^{G^{\sm u}}(C)$, satisfying the collider clause of $\sigma$-openness on $\pi'$.
+
+\textbullet\ \emph{Non-colliders.}
+By~\eqref{eq:sc_preserved_25}, $\Sc^{G^{\sm u}}(b_l) = \Sc^G(b_l) \sm \{u\}$. A blockable non-collider $b_l \notin C$ on $\pi$ remains a non-collider on $\pi'$ with $b_l \notin C$, hence the blockable clause is satisfied on $\pi'$ (whether $b_l$ is blockable or unblockable on $\pi'$). An unblockable non-collider $b_l$ on $\pi$ whose outgoing edges on $\pi'$ all go to nodes in $\Sc^{G^{\sm u}}(b_l)$ stays unblockable on $\pi'$ (its outgoing-edge target lies in $\Sc^{G^{\sm u}}(b_l)$ by hypothesis), hence the unblockable clause is satisfied on $\pi'$ by \refrow{claim_3_21}.
+
+It remains to consider an unblockable non-collider $b_l$ on $\pi$ such that an outgoing edge of $\pi'$ at $b_l$ goes to (w.l.o.g.) $b_{l+1} \notin \Sc^{G^{\sm u}}(b_l)$. Then on $\pi$, the corresponding outgoing edge of $\pi$ at $b_l$ went into a $u$-position, i.e.\ $b_l \tuh u \in E$, and the contracted edge of $\pi'$ at $b_l$ is $b_l \tuh b_{l+1} \in E^{\sm u}$ (Case~B, directed pass-through). The unblockable-non-collider clause on $\pi$ requires that this outgoing direction lie in $\Sc^G(b_l)$, i.e.\ $u \in \Sc^G(b_l)$. We split on whether $b_l \in C$:
+\begin{itemize}
+    \item If $b_l \notin C$, then $b_l$ is a blockable non-collider on $\pi'$ in the $\sigma$-open sense (its sole obligation is $b_l \notin C$), and $\pi'$ is $\sigma$-open at $b_l$.
+    \item If $b_l \in C$, we modify $\pi'$ locally so that the outgoing direction at $b_l$ lies in $\Sc^{G^{\sm u}}(b_l)$ or, alternatively, so that $b_l$ becomes a (genuine) collider with the contracted bifurcation. Concretely: since $u \in \Sc^G(b_l)$ we have a directed path from $u$ to $b_l$ in $G$ (by def \ref{def_3_5}, item~vii.); let $w$ be the successor of $u$ on this directed path, so $u \tuh w \in E$ and $w \in \Sc^G(b_l)$. By~\eqref{eq:sc_preserved_25}, $w \in \Sc^G(b_l) \sm \{u\} = \Sc^{G^{\sm u}}(b_l)$ if $w \ne u$ (which holds because $w$ is the \emph{successor} of $u$ on the directed path, so $w \ne u$ unless the path is the length-0 ``$u$ itself'', impossible since the path goes from $u$ to $b_l \ne u$). Note further that $w \ne b_{l+1}$ since $b_{l+1} \notin \Sc^G(b_l) \supseteq \Sc^{G^{\sm u}}(b_l)$ but $w \in \Sc^{G^{\sm u}}(b_l)$.
+
+    From $b_l \tuh u \tuh w$ (a directed walk through $\{u\}$ in $G$) we get $b_l \tuh w \in E^{\sm u}$ by def \ref{def:G_marginalization}, item~iii.\ (witness directed walk through $\{u\}$ from $b_l$ to $w$). From the fork bifurcation $w \hut u \tuh b_{l+1}$ in $G$ (i.e.\ $u \tuh w$ and $u \tuh b_{l+1}$ sharing the common source $u$) we get $w \huh b_{l+1} \in L^{\sm u}$ by def \ref{def:G_marginalization}, item~iv.\ (bifurcation through $\{u\}$).
+
+    Replace the single edge $b_l \tuh b_{l+1}$ of $\pi'$ at this position by the two-edge insertion $b_l \tuh w \huh b_{l+1}$. The arrowhead at $b_{l+1}$ is an arrowhead in both the original (from the directed edge $b_l \tuh b_{l+1}$) and the replacement (from the bidirected edge $w \huh b_{l+1}$), so the collider / non-collider classifications elsewhere on $\pi'$ are unchanged. The newly inserted position $w$ is a collider (it has an arrowhead on both flanking edges: the head of $b_l \tuh w$ and the head of $w \huh b_{l+1}$). Since $w \in \Sc^{G^{\sm u}}(b_l)$ and $b_l \in C$ (the hypothesis of this sub-case), the SCC-and-ancestor inclusion $w \in \Sc^{G^{\sm u}}(b_l) \subseteq \Anc^{G^{\sm u}}(b_l) \subseteq \Anc^{G^{\sm u}}(C)$ holds, so $w$ satisfies the collider clause of $\sigma$-openness on the modified $\pi'$.
+
+    The arrowhead at $b_l$ from the replacement edge $b_l \tuh w$ is a tail (so the outgoing direction at $b_l$ is towards $w \in \Sc^{G^{\sm u}}(b_l)$, restoring the unblockable-non-collider clause for $b_l$ on the modified $\pi'$), \emph{unless} $w = b_l$; in the degenerate $w = b_l$ sub-case the directed edge $b_l \tuh b_{l+1}$ of $\pi'$ is replaced by the bidirected edge $b_l \huh b_{l+1}$ alone (no $w$ insertion), which turns $b_l$ on $\pi'$ into a position with an additional arrowhead on this side and hence either preserves it as a non-collider (if the other side was a tail) or turns it into a collider; in the collider case, $b_l \in C \subseteq \Anc^{G^{\sm u}}(C)$ gives the collider clause of $\sigma$-openness on the modified $\pi'$, and in the non-collider case the blockable-non-collider clause is satisfied because $b_l$'s remaining outgoing direction (on the unmodified side) still lies in $\Sc^{G^{\sm u}}(b_l)$ by the original $\pi$-unblockable-non-collider property at $b_l$ on the unmodified side.
+
+    Applying this construction to each problematic outgoing edge of $b_l$ (symmetrically for the $b_{l-1}$ side if needed), after all modifications $b_l$ is either an unblockable non-collider with all outgoing edges going into $\Sc^{G^{\sm u}}(b_l)$ (case: at least one outgoing direction remains tail-style on the modified $\pi'$), or a collider in $C \subseteq \Anc^{G^{\sm u}}(C)$ (case: every outgoing direction was replaced by a bidirected edge with $w = b_l$). In both cases, $\pi'$ (after modifications) is $\sigma$-open at $b_l$.
+\end{itemize}
+
+\smallskip\noindent\emph{Modifications preserve start/end and walk structure.}
+Each local modification described above replaces a single edge of $\pi'$ at position $b_l$ by a length-two insertion of the form $b_l \tuh w \huh b_{l+1}$ (or by a length-one bidirected edge $b_l \huh b_{l+1}$ in the degenerate $w = b_l$ sub-case). The endpoints $b_0$ and $b_{r+1}$ of $\pi'$ are untouched (they correspond to $v_0 \in A$ and $v_n \in J \cup B$), so the modified walk is still from $v_0 \in A$ to $v_n \in J \cup B$. The walk-step constraint of def \ref{def:walks}, item~i., is maintained because every inserted edge is a witnessed edge of $G^{\sm u}$ (in $E^{\sm u}$ or $L^{\sm u}$, as shown above using def \ref{def:G_marginalization}, items~iii.--iv.).
+
+\smallskip
+Combining all modifications, the resulting walk in $G^{\sm u}$ from $v_0 \in A$ to $v_n \in J \cup B$ is $C$-$\sigma$-open at every position (colliders satisfy the $\Anc^{G^{\sm u}}(C)$ clause by~\eqref{eq:anc_preserved_25}; non-colliders satisfy the blockable-or-unblockable clause as analyzed in the joint case-split above). This is the desired witness; hence the negation of statement~(2) holds. Contrapositively, statement~(2) implies statement~(1).
+
+\medskip\noindent\emph{Conclusion.}
+Both implications $(1) \implies (2)$ and $(2) \implies (1)$ have been established (Steps~3 and~4) for the one-node case $D = \{u\}$ with $u \in V \sm (A \cup B \cup C)$, which by the induction of Step~1 covers every $D \ins V$ with $D \cap (A \cup B \cup C) = \emptyset$. Hence statements~(1) and~(2) are equivalent, i.e.\ $A \isPerp_G B \given C \iff A \isPerp_{G^{\sm D}} B \given C$.
 \end{proof}
 
 \end{document}

@@ -6332,30 +6332,32 @@
       "section": "3.3",
       "title": "ISigmaSeparation",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "not proven",
-      "solved": "no",
-      "date_solved": "",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-25",
       "tips": "",
       "tex_file": "graphs.tex",
-      "main_lean_file": "",
-      "lean_files": [],
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparationMarginalization.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_3/ISigmaSeparationMarginalization.lean"
+      ],
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 0,
+        "add_design_choice_comments": 1,
+        "solved": 1,
         "refactor": 0,
-        "make_plan": 0,
+        "make_plan": 3,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
-        "continue_agent": 0,
-        "new_manager": 0,
+        "spawn_agent_sub_task": 24,
+        "continue_agent": 7,
+        "new_manager": 2,
         "reorder": 0,
         "reset": 0,
         "request_from_human": 0,
@@ -6363,12 +6365,28 @@
         "unmistake": 0,
         "accept_deviation": 0,
         "register_ln_subtlety": 0,
-        "no_action": 0
+        "no_action": 0,
+        "verify_tex_statement_only": 1,
+        "verify_tex_statement_equivalence": 1,
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[$i\\sigma$-separation under marginalization]\\label{lem:stability_separation_marginalization}\n        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \\ins J \\cup V$ and $D \\ins V$ \n        be subsets of nodes such that:\n        \\[ D \\cap \\lp A \\cup B \\cup C\\rp = \\emptyset.\\]\n        Then we have the equivalence:\n        \\[ A \\isPerp_G B \\given C \\qquad \\iff \\qquad  A \\isPerp_{G^{\\sm D} }B \\given C. \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
-      "addition_to_the_LN": ""
+      "agent_registry": [
+        {
+          "kind": "for_website",
+          "spawned_by": "manager",
+          "session_id": "5c38f0b6-c9fd-484b-9e21-389b4e343a48",
+          "first_seen": "2026-06-25T11:34:36+00:00",
+          "last_used": "2026-06-25T11:34:36+00:00"
+        }
+      ],
+      "time_needed_to_solve": 110355,
+      "addition_to_the_LN": "",
+      "wording_check": {
+        "done": true,
+        "output": "Looking at the tex block carefully:\n\n```latex\nLet $G=(J,V,E,L)$ be a CDMG, $A,B,C \\ins J \\cup V$ and $D \\ins V$ \nbe subsets of nodes such that:\n$D \\cap (A \\cup B \\cup C) = \\emptyset$.\nThen: $A \\isPerp_G B \\given C \\iff A \\isPerp_{G^{\\sm D}} B \\given C$.\n```\n\nAnalyzing for subtleties:\n\n1. **Asymmetry between $A,B,C \\subseteq J \\cup V$ and $D \\subseteq V$**: This is a deliberate, explicit constraint — marginalization is only defined over $V$. Not arbitrary, just stated.\n\n2. **Disjointness on test sets**: Lemma doesn't require $A, B, C$ to be pairwise disjoint. Standard for separation lemmas — if overlap makes one side vacuous/trivial, the other should too, so equivalence holds.\n\n3. **Empty $D$**: Then $G^{\\sm D} = G$ and equivalence is trivial. Fine.\n\n4. **Empty $A$, $B$, or $C$**: Separation is vacuously true on both sides. Fine.\n\n5. **Disjointness constraint $D \\cap (A \\cup B \\cup C) = \\emptyset$** is precise and standard.\n\n6. **$G^{\\sm D}$ and $\\isPerp$ are notation defined elsewhere** — not a problem with this lemma's own wording.\n\nThe lemma is a clean, standard \"stability under marginalization\" statement. All hypotheses are precise, the conclusion is unambiguous, and no degenerate case admits a counter-intuitive reading from the literal text.\n\nNO_SUBTLETIES",
+        "session": "dbfe5c11-e4b8-4294-991f-5bd84d81c1ae"
+      }
     },
     {
       "def_or_claim": "claim",

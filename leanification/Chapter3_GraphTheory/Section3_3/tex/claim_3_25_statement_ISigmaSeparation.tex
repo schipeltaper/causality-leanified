@@ -20,11 +20,71 @@
 \phantomsection\label{claim_3_25}
 
 \begin{Lem}[$i\sigma$-separation under marginalization]\label{lem:stability_separation_marginalization}
-        Let $G=(J,V,E,L)$ be a CDMG, $A,B,C \ins J \cup V$ and $D \ins V$ 
-        be subsets of nodes such that:
-        \[ D \cap \lp A \cup B \cup C\rp = \emptyset.\]
-        Then we have the equivalence:
-        \[ A \isPerp_G B \given C \qquad \iff \qquad  A \isPerp_{G^{\sm D} }B \given C. \]
+    Let $G = (J, V, E, L)$ be a CDMG (def \ref{def-cdmg}); throughout we use the notation of def \ref{not-cdmg}, the walk definition of def \ref{def:walks}, item~i., the family-relationships definition of def \ref{def_3_5} (we write $\Anc^H(C) := \bigcup_{c \in C} \Anc^H(c)$ for the ancestor set of a subset $C$ in an arbitrary CDMG $H$, using def \ref{def_3_5}, item~iv., per the convention recorded in the ``Ancestor set of $C$'' paragraph of def \ref{def:sigma_blocking}), the collider/non-collider classification of positions on a walk of def \ref{def:collider_noncollider}, item~ii., the blockable/unblockable non-collider refinement of def \ref{def:unblockable_noncollider}, the $\sigma$-blocking predicate ``$\pi$ is $C$-$\sigma$-blocked'' (equivalently ``$\sigma$-blocked given $C$'') of def \ref{def:sigma_blocking} (``$C$-$\sigma$-blocked walk'' paragraph), the marginalization operator $G^{\sm \cdot}$ of def \ref{def:G_marginalization}, and the $i\sigma$-separation predicate of def \ref{def:sigma_separation}, item~1. Let
+    \[
+        A,\, B,\, C \;\ins\; J \cup V
+        \qquad\text{and}\qquad
+        D \;\ins\; V
+    \]
+    be subsets of nodes. The triple $A$, $B$, $C$ is \emph{not} assumed to be pairwise disjoint, nor disjoint from the input-node set $J$, nor non-empty (matching the permissiveness of def \ref{def:sigma_separation}, item~1, on its three argument-sets). The typing $D \ins V$ is the precondition of the marginalization operator of def \ref{def:G_marginalization} (which is only defined when its target is a subset of the output-node set $V$); the case $D = \emptyset$ is admitted (then $G^{\sm D} = G$ verbatim under def \ref{def:G_marginalization}, items~i.--iv., and the equivalence below trivialises). Suppose, in addition, that
+    \[
+        D \cap \lp A \cup B \cup C \rp \;=\; \emptyset.
+    \]
+
+    \emph{Recall: the marginalized CDMG $G^{\sm D}$ (def \ref{def:G_marginalization} with $W = D$).}
+    The marginalization $G^{\sm D}$ is the CDMG
+    \[
+        G^{\sm D} \;=\; \lp J^{\sm D},\, V^{\sm D},\, E^{\sm D},\, L^{\sm D} \rp,
+    \]
+    whose four components are given by items~i.--iv.\ of def \ref{def:G_marginalization}:
+    \[
+        J^{\sm D} \;=\; J,
+        \qquad
+        V^{\sm D} \;=\; V \sm D,
+    \]
+    and $E^{\sm D} \ins (J \cup (V \sm D)) \times (V \sm D)$, $L^{\sm D} \ins (V \sm D) \times (V \sm D)$ are the directed- and bidirected-edge sets witnessed, respectively, by the directed-walk-through-$D$ predicate $\Phi_E$ of def \ref{def:G_marginalization}, item~iii., and the bifurcation-through-$D$ predicate $\Phi_L$ of def \ref{def:G_marginalization}, item~iv.\ (with the standing $\ul{v} \ne \ol{v}$ constraint on $L^{\sm D}$ and the end-node arrowhead constraint of clause~(f) of item~iv.). The carrier of $G^{\sm D}$ is
+    \[
+        J^{\sm D} \cup V^{\sm D} \;=\; J \cup (V \sm D),
+    \]
+    and the input-node set is preserved verbatim: $J^{\sm D} = J$.
+
+    \emph{Well-typedness of $A$, $B$, $C$ as subsets of the carrier of $G^{\sm D}$.}
+    From $A, B, C \ins J \cup V$, the disjointness hypothesis $D \cap (A \cup B \cup C) = \emptyset$, $D \ins V$, and $J \cap V = \emptyset$ (def \ref{def-cdmg}) it follows that
+    \[
+        A,\, B,\, C \;\ins\; (J \cup V) \sm D \;=\; J \cup (V \sm D) \;=\; J^{\sm D} \cup V^{\sm D}.
+    \]
+    Hence the $i\sigma$-separation predicate of def \ref{def:sigma_separation}, item~1, instantiated on the CDMG $G^{\sm D}$ with the same triple $(A, B, C)$ is well-typed on the right-hand side of the equivalence below (its argument-sets are subsets of the carrier of the CDMG on which it is evaluated).
+
+    \emph{The equivalence (with $i\sigma$-separation unfolded inline on both sides per def \ref{def:sigma_separation}, item~1).}
+    The following two universal statements are equivalent:
+    \begin{enumerate}
+        \item For every integer $n \ge 0$ and every walk
+            \[
+                \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+            \]
+            in $G$ in the sense of def \ref{def:walks}, item~i.\ (so $v_0, \dots, v_n \in J \cup V$ and $a_0, \dots, a_{n-1} \in E \cup L$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$ relative to $E, L$:
+            \[
+                \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E \cup L\bigr)
+                \;\lor\;
+                \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E\bigr)\,)
+            \]
+            with $v_0 \in A$ and $v_n \in J \cup B$, the walk $\pi$ is $C$-$\sigma$-blocked in $G$ in the sense of def \ref{def:sigma_blocking} (``$C$-$\sigma$-blocked walk'' paragraph): there exists a position $k \in \{0, 1, \dots, n\}$ such that either ($k$ is a collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~ii.\ computed relative to the edges of $G$, and $v_k \notin \Anc^G(C)$), or ($k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider} computed relative to the edges of $G$, and $v_k \in C$); the ancestor set on the right-hand side of each existential clause is $\Anc^G(C) = \bigcup_{c \in C} \Anc^G(c)$ from def \ref{def_3_5}, item~iv., computed in $G$.
+
+        \item For every integer $n \ge 0$ and every walk
+            \[
+                \pi = (v_0, a_0, v_1, a_1, \dots, v_{n-1}, a_{n-1}, v_n)
+            \]
+            in $G^{\sm D}$ in the sense of def \ref{def:walks}, item~i.\ \emph{applied to the CDMG $G^{\sm D}$ in place of $G$} (so $v_0, \dots, v_n \in J^{\sm D} \cup V^{\sm D} = J \cup (V \sm D)$ and $a_0, \dots, a_{n-1} \in E^{\sm D} \cup L^{\sm D}$, satisfying the walk constraint at every $k \in \{0, 1, \dots, n - 1\}$ relative to $E^{\sm D}, L^{\sm D}$:
+            \[
+                \bigl(a_k = (v_k, v_{k+1}) \;\land\; a_k \in E^{\sm D} \cup L^{\sm D}\bigr)
+                \;\lor\;
+                \bigl(a_k = (v_{k+1}, v_k) \;\land\; a_k \in E^{\sm D}\bigr)\,)
+            \]
+            with $v_0 \in A$ and $v_n \in J \cup B$ (the asymmetric right-endpoint inclusion of def \ref{def:sigma_separation}, item~1, instantiated on the CDMG $G^{\sm D}$ reads ``$v_n \in J^{\sm D} \cup B$''; using $J^{\sm D} = J$ recorded above, this is exactly $v_n \in J \cup B$), the walk $\pi$ is $C$-$\sigma$-blocked in $G^{\sm D}$ in the sense of def \ref{def:sigma_blocking} \emph{applied to the CDMG $G^{\sm D}$ in place of $G$} (``$C$-$\sigma$-blocked walk'' paragraph): there exists a position $k \in \{0, 1, \dots, n\}$ such that either ($k$ is a collider on $\pi$ in the sense of def \ref{def:collider_noncollider}, item~ii.\ computed relative to the edges of $G^{\sm D}$, and $v_k \notin \Anc^{G^{\sm D}}(C)$), or ($k$ is a blockable non-collider on $\pi$ in the sense of def \ref{def:unblockable_noncollider} computed relative to the edges of $G^{\sm D}$, and $v_k \in C$); the ancestor set on the right-hand side of each existential clause is $\Anc^{G^{\sm D}}(C) = \bigcup_{c \in C} \Anc^{G^{\sm D}}(c)$ from def \ref{def_3_5}, item~iv., \emph{computed in $G^{\sm D}$} (not in $G$).
+    \end{enumerate}
+
+    \emph{Reading of the equivalence.}
+    Statements (1) and (2) are, respectively, the unfolded forms of ``$A$ is $i\sigma$-separated from $B$ given $C$ in $G$'' and ``$A$ is $i\sigma$-separated from $B$ given $C$ in $G^{\sm D}$'' under def \ref{def:sigma_separation}, item~1, instantiated on the two distinct CDMGs $G$ and $G^{\sm D}$ (the LN states the equivalence using the $\isPerp$ notation of def \ref{def:sigma_separation}, item~1, which is in this rewrite expanded inline as~(1) and~(2) so the spec is self-contained). The lemma asserts that these two universal statements are equivalent, despite the fact that switching from $G$ to $G^{\sm D}$ in general changes the carrier (from $J \cup V$ to $J \cup (V \sm D)$), the edge sets (from $E, L$ to $E^{\sm D}, L^{\sm D}$), the class of walks quantified over, the collider / blockable-non-collider classifications of positions on those walks (each computed relative to the edges of the CDMG in question), and the ancestor set used in the collider clause of $\sigma$-blocking (from $\Anc^G(C)$ to $\Anc^{G^{\sm D}}(C)$); the only data shared verbatim across the two sides are the input-node set $J^{\sm D} = J$, the triple $(A, B, C)$, and the conditioning role of $C$ inside the $\sigma$-blocking predicate.
 \end{Lem}
 
 \end{document}

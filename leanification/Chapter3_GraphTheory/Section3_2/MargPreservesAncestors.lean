@@ -3948,6 +3948,184 @@ theorem marginalize_restricts_topological_order (G : CDMG Node)
     obtain ⟨p, hp_dir, hp_pos, _⟩ := hvw_phi
     exact Walk.lt_of_directedWalk_pos h_trans h_parent p hp_dir hp_pos
 
+-- ## Set-level corollaries of `marginalize_preserves_ancestors`
+-- (consumed by `claim_3_25` `ISigmaSeparationMarginalization`)
+--
+-- The four lemmas below are *set-level* repackagings of the
+-- ancestor / descendant / SCC preservation content above,
+-- shaped for direct consumption in the σ-blocking transport of
+-- `claim_3_25` (Step 2(a) and 2(b) of the tex proof at
+-- `Section3_3/tex/claim_3_25_proof_ISigmaSeparation.tex`,
+-- lines 129-148).
+--
+-- * `marginalize_preserves_descendants` — mirror of
+--   `marginalize_preserves_ancestors` (line 3830 above) with the
+--   walk direction swapped.  Not in the codebase prior to this
+--   subtask; proved here as a direct port of the ancestors proof
+--   with the two endpoints `(v₁, v₂)` swapped at the
+--   `project_directed_walk_marginalize` /
+--   `expand_directed_walk_marginalize` call sites (since `Desc`
+--   uses `Walk G v₂ v₁` where `Anc` uses `Walk G v₁ v₂`).
+--
+-- * `anc_set_marginalize_eq_inter_carrier` — for `C` disjoint
+--   from `W` (and `C ⊆ J ∪ V`), `Anc^{G^{∖W}}(C) = Anc^G(C) ∩
+--   (↑J ∪ ↑(V ∖ W))`.  Captures the LN's equation (★) of the
+--   tex proof's Step 2(a).
+--
+-- * `subset_anc_set_marginalize_of_disjoint` —
+--   `C ⊆ Anc^{G^{∖W}}(C)`, the reflexive self-membership
+--   corollary used in Step 2(a)'s collider-clause transport
+--   (every `c ∈ C` is its own ancestor in `G^{∖W}` via the
+--   trivial walk).
+--
+-- * `sc_marginalize_eq_sdiff` — `Sc^{G^{∖W}}(v) = Sc^G(v) ∖ ↑W`
+--   for `v ∈ V ∖ W`.  Captures the LN's equation (★★) of the
+--   tex proof's Step 2(b); proved by `Anc ∩ Desc` unfolding plus
+--   the two preservation theorems.
+
+/-- Mirror of `marginalize_preserves_ancestors` for descendants:
+`v₁ ∈ Desc^G(v₂) ↔ v₁ ∈ Desc^{G^{∖W}}(v₂)` for `v₁, v₂` in the
+carrier of `G^{∖W}` (i.e.\ `J ∪ (V ∖ W)`).  Used as a building
+block for the SCC preservation lemma `sc_marginalize_eq_sdiff`.
+The proof structurally mirrors `marginalize_preserves_ancestors`:
+the only delta is that `Desc` quantifies a walk `Walk G v₂ v₁`
+(target-to-source) where `Anc` quantifies `Walk G v₁ v₂`, so the
+two endpoint witnesses `hv₁, hv₂` are swapped at the
+`project_directed_walk_marginalize` /
+`expand_directed_walk_marginalize` call sites. -/
+theorem marginalize_preserves_descendants (G : CDMG Node) (W : Finset Node)
+    (hW : W ⊆ G.V) (v₁ v₂ : Node)
+    (hv₁ : v₁ ∈ G.marginalize W hW) (hv₂ : v₂ ∈ G.marginalize W hW) :
+    v₁ ∈ G.Desc v₂ ↔ v₁ ∈ (G.marginalize W hW).Desc v₂ := by
+  constructor
+  · rintro ⟨_, p, hp_dir⟩
+    refine ⟨hv₁, ?_⟩
+    exact project_directed_walk_marginalize p hp_dir hv₂ hv₁
+  · rintro ⟨_, p, hp_dir⟩
+    refine ⟨mem_of_mem_marginalize hv₁, ?_⟩
+    obtain ⟨q, hq_dir, _, _, _, _, _⟩ :=
+      expand_directed_walk_marginalize p hp_dir
+    exact ⟨q, hq_dir⟩
+
+/-- Set-level corollary of `marginalize_preserves_ancestors`:
+the ancestor set of `C` in the marginalized CDMG equals the
+intersection of the ambient ancestor set with the carrier of the
+marginalized CDMG, provided `C` is well-typed in `G` and disjoint
+from `W`.  Spec source: tex proof line 134-137 (the LN's equation
+(★) of Step 2(a) of `claim_3_25`).  The carrier intersection is
+`(↑G.J : Set Node) ∪ ↑(G.V \ W)`, the Set-level rendering of
+`G^{∖W}`'s vertex set `J^{∖W} ∪ V^{∖W} = J ∪ (V ∖ W)`. -/
+lemma anc_set_marginalize_eq_inter_carrier
+    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V)
+    (C : Set Node) (hC : C ⊆ (↑G.J : Set Node) ∪ ↑G.V)
+    (hCW : Disjoint (↑W : Set Node) C) :
+    (G.marginalize W hW).AncSet C
+      = G.AncSet C ∩ ((↑G.J : Set Node) ∪ ↑(G.V \ W)) := by
+  -- Every `c ∈ C` lifts to a node of the marginalized graph:
+  -- `c ∈ J ∪ V` (from `hC`) and `c ∉ W` (from `hCW`) together
+  -- give `c ∈ J ∪ (V ∖ W) = carrier(G^{∖W})`.
+  have hC_marg : ∀ c ∈ C, c ∈ G.marginalize W hW := by
+    intro c hc
+    change c ∈ G.J ∪ (G.V \ W)
+    have hc_G : c ∈ (↑G.J : Set Node) ∪ ↑G.V := hC hc
+    have hc_notW : c ∉ (↑W : Set Node) := Set.disjoint_right.mp hCW hc
+    rcases hc_G with hJ | hV
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp hJ)
+    · refine Finset.mem_union_right _
+        (Finset.mem_sdiff.mpr ⟨Finset.mem_coe.mp hV, ?_⟩)
+      intro hxW
+      exact hc_notW (Finset.mem_coe.mpr hxW)
+  ext v
+  unfold CDMG.AncSet
+  simp only [Set.mem_iUnion, Set.mem_inter_iff]
+  constructor
+  · rintro ⟨c, hc_C, hvc⟩
+    have hc_marg : c ∈ G.marginalize W hW := hC_marg c hc_C
+    have hv_marg : v ∈ G.marginalize W hW := hvc.1
+    refine ⟨⟨c, hc_C, ?_⟩, ?_⟩
+    · exact (marginalize_preserves_ancestors G W hW v c hv_marg hc_marg).mpr hvc
+    · -- `v ∈ G.J ∪ (G.V \ W)` lifts to `v ∈ ↑G.J ∪ ↑(G.V \ W)`
+      have hv_union : v ∈ G.J ∪ (G.V \ W) := hv_marg
+      rcases Finset.mem_union.mp hv_union with hJ | hVW
+      · exact Or.inl (Finset.mem_coe.mpr hJ)
+      · exact Or.inr (Finset.mem_coe.mpr hVW)
+  · rintro ⟨⟨c, hc_C, hvc⟩, hv_carrier⟩
+    have hc_marg : c ∈ G.marginalize W hW := hC_marg c hc_C
+    have hv_marg : v ∈ G.marginalize W hW := by
+      change v ∈ G.J ∪ (G.V \ W)
+      rcases hv_carrier with hJ | hVW
+      · exact Finset.mem_union_left _ (Finset.mem_coe.mp hJ)
+      · exact Finset.mem_union_right _ (Finset.mem_coe.mp hVW)
+    exact ⟨c, hc_C,
+      (marginalize_preserves_ancestors G W hW v c hv_marg hc_marg).mp hvc⟩
+
+/-- Reflexive inclusion `C ⊆ Anc^{G^{∖W}}(C)`: each `c ∈ C` is its
+own ancestor in `G^{∖W}` via the trivial walk `Walk.nil`, provided
+`c ∉ W` (from disjointness) and `c ∈ J ∪ V` (well-typedness).
+Spec source: tex proof line 138 (Step 2(a) of `claim_3_25`).  The
+underlying mathematical fact is the LN's "$C \subseteq \Anc^G(C)$"
+reflexivity clause of def_3_5, item iv, transported across
+marginalization. -/
+lemma subset_anc_set_marginalize_of_disjoint
+    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V)
+    (C : Set Node) (hC : C ⊆ (↑G.J : Set Node) ∪ ↑G.V)
+    (hCW : Disjoint (↑W : Set Node) C) :
+    C ⊆ (G.marginalize W hW).AncSet C := by
+  intro c hc
+  unfold CDMG.AncSet
+  simp only [Set.mem_iUnion]
+  have hc_G : c ∈ (↑G.J : Set Node) ∪ ↑G.V := hC hc
+  have hc_notW : c ∉ (↑W : Set Node) := Set.disjoint_right.mp hCW hc
+  have hc_marg : c ∈ G.marginalize W hW := by
+    change c ∈ G.J ∪ (G.V \ W)
+    rcases hc_G with hJ | hV
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp hJ)
+    · refine Finset.mem_union_right _
+        (Finset.mem_sdiff.mpr ⟨Finset.mem_coe.mp hV, ?_⟩)
+      intro hxW
+      exact hc_notW (Finset.mem_coe.mpr hxW)
+  exact ⟨c, hc, hc_marg, Walk.nil c hc_marg, trivial⟩
+
+/-- Set-level SCC preservation: `Sc^{G^{∖W}}(v) = Sc^G(v) ∖ ↑W`
+for `v ∈ V ∖ W`.  Spec source: tex proof lines 140-148 (the LN's
+equation (★★) of Step 2(b) of `claim_3_25`).  The proof
+unfolds `Sc = Anc ∩ Desc` (def_3_5, item vii) and chains
+`marginalize_preserves_ancestors` with
+`marginalize_preserves_descendants`; the `↑W` on the right is
+the Set-coercion of the (Finset) marginalization set `W`. -/
+lemma sc_marginalize_eq_sdiff
+    (G : CDMG Node) (W : Finset Node) (hW : W ⊆ G.V)
+    {v : Node} (hv : v ∈ G.V \ W) :
+    (G.marginalize W hW).Sc v = G.Sc v \ (↑W : Set Node) := by
+  have hv_marg : v ∈ G.marginalize W hW := by
+    change v ∈ G.J ∪ (G.V \ W)
+    exact Finset.mem_union_right _ hv
+  ext x
+  unfold CDMG.Sc
+  simp only [Set.mem_inter_iff, Set.mem_diff]
+  constructor
+  · rintro ⟨hx_anc, hx_desc⟩
+    have hx_marg : x ∈ G.marginalize W hW := hx_anc.1
+    have hx_notW : x ∉ W := notW_of_mem_marginalize hW hx_marg
+    refine ⟨⟨?_, ?_⟩, ?_⟩
+    · exact (marginalize_preserves_ancestors G W hW x v hx_marg hv_marg).mpr hx_anc
+    · exact (marginalize_preserves_descendants G W hW x v hx_marg hv_marg).mpr hx_desc
+    · intro hxW
+      exact hx_notW (Finset.mem_coe.mp hxW)
+  · rintro ⟨⟨hx_G_anc, hx_G_desc⟩, hx_notW⟩
+    have hx_G : x ∈ G := hx_G_anc.1
+    have hx_marg : x ∈ G.marginalize W hW := by
+      change x ∈ G.J ∪ (G.V \ W)
+      have hx_union : x ∈ G.J ∪ G.V := hx_G
+      rcases Finset.mem_union.mp hx_union with hJ | hV
+      · exact Finset.mem_union_left _ hJ
+      · refine Finset.mem_union_right _ (Finset.mem_sdiff.mpr ⟨hV, ?_⟩)
+        intro hxW
+        exact hx_notW (Finset.mem_coe.mpr hxW)
+    refine ⟨?_, ?_⟩
+    · exact (marginalize_preserves_ancestors G W hW x v hx_marg hv_marg).mp hx_G_anc
+    · exact (marginalize_preserves_descendants G W hW x v hx_marg hv_marg).mp hx_G_desc
+
 end CDMG
 
 end Causality

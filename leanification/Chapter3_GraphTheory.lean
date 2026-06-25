@@ -42,3 +42,4 @@ import Chapter3_GraphTheory.Section3_3.SigmaSeparationSymmetric
 import Chapter3_GraphTheory.Section3_3.LabelRoman
 import Chapter3_GraphTheory.Section3_3.SigmaOpenPathsWalks
 import Chapter3_GraphTheory.Section3_3.SigmaSeparationEquivalences
+import Chapter3_GraphTheory.Section3_3.ISigmaSeparationMarginalization
