@@ -38,10 +38,10 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-25",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a refactor ROOT in `eqViaNodeMap_injective` (roots: `claim_3_7`). The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
@@ -51,17 +51,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -74,11 +74,124 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\n   Then the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$ and then node-splitting $W_1$:\n   \\[ \\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}  =  G_{\\spl(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1b9f1df9-4807-42d8-9c68-07427023c6fe",
+          "first_seen": "2026-06-25T22:21:03+00:00",
+          "last_used": "2026-06-25T22:21:03+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "9be61236-d7c4-454e-b0ef-2d35baac526f",
+          "first_seen": "2026-06-25T22:30:13+00:00",
+          "last_used": "2026-06-25T22:30:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c2570c97-61b4-47de-a104-aa81eeb1eaec",
+          "first_seen": "2026-06-25T22:31:03+00:00",
+          "last_used": "2026-06-25T22:31:03+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "fb319a4c-5c85-4ff3-89e2-539ad62b9c73",
+          "first_seen": "2026-06-25T22:31:34+00:00",
+          "last_used": "2026-06-25T22:31:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8dd859e9-bd52-409f-99f9-edbc68bbfc46",
+          "first_seen": "2026-06-25T22:32:21+00:00",
+          "last_used": "2026-06-25T22:32:21+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "64057c0f-86ea-4881-ae42-53eb72a70cf1",
+          "first_seen": "2026-06-25T22:36:08+00:00",
+          "last_used": "2026-06-25T22:36:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3346bf66-251b-4b38-830f-5dab60999578",
+          "first_seen": "2026-06-25T22:37:13+00:00",
+          "last_used": "2026-06-25T22:37:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "60475a6e-8962-457a-9a0d-f152226eb7bf",
+          "first_seen": "2026-06-25T23:02:26+00:00",
+          "last_used": "2026-06-25T23:02:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "72a2f6cc-9c3a-4c66-9b0c-788e30b0fc77",
+          "first_seen": "2026-06-25T23:03:44+00:00",
+          "last_used": "2026-06-25T23:03:44+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "3c34c439-3be3-4f5c-a1e4-414c81070bf3",
+          "first_seen": "2026-06-25T23:08:09+00:00",
+          "last_used": "2026-06-25T23:08:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c2d2527d-1b4a-4f56-afc0-5ab48142ca73",
+          "first_seen": "2026-06-25T23:09:29+00:00",
+          "last_used": "2026-06-25T23:09:29+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "0e14bb3a-7ed6-492a-9164-e3d4217bc274",
+          "first_seen": "2026-06-25T23:12:36+00:00",
+          "last_used": "2026-06-25T23:12:36+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4eb425f7-8dd0-4752-95a8-71877193dd7c",
+          "first_seen": "2026-06-25T23:13:50+00:00",
+          "last_used": "2026-06-25T23:13:50+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a531019e-0415-4c63-8d98-604f47afc6aa",
+          "first_seen": "2026-06-25T23:19:29+00:00",
+          "last_used": "2026-06-25T23:19:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a1e652c5-9e8a-4b7c-a30c-3eb01d79e90f",
+          "first_seen": "2026-06-25T23:19:56+00:00",
+          "last_used": "2026-06-25T23:19:56+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "26874a0a-9e40-4f41-a619-7779b2ed2d3e",
+          "first_seen": "2026-06-25T23:23:43+00:00",
+          "last_used": "2026-06-25T23:23:43+00:00"
+        }
+      ],
+      "time_needed_to_solve": 4289,
       "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs.",
       "wording_check": {
         "done": true,
