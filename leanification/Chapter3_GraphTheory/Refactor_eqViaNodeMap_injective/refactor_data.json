@@ -286,10 +286,10 @@
       "section": "3.2",
       "title": "TwoDisjointNode",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-26",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `eqViaNodeMap_injective`; it was pulled in because root(s) `claim_3_7` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
@@ -299,17 +299,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -322,11 +322,82 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Two disjoint node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1, W_2 \\ins V$ two disjoint subsets of the output nodes from $G$. \n   Then the CADMG obtained from first node-splitting on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then node-splitting on $W_1$:\n   \\[ \\lp G_{\\swig(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\swig(W_1)}  =  G_{\\swig(W_1 \\dcup W_2)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b0091387-5f36-4d09-ae36-bcecaec67ef2",
+          "first_seen": "2026-06-25T23:41:43+00:00",
+          "last_used": "2026-06-25T23:41:43+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "08fe6b7c-becb-4b4b-a2fb-e9a415ede2be",
+          "first_seen": "2026-06-25T23:47:50+00:00",
+          "last_used": "2026-06-25T23:47:50+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0cc35dbe-5b06-4b5e-aacb-1d98ac513c8f",
+          "first_seen": "2026-06-25T23:48:20+00:00",
+          "last_used": "2026-06-25T23:48:20+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "457fa500-fa46-4a0c-b3ca-7a80595c72f2",
+          "first_seen": "2026-06-25T23:48:43+00:00",
+          "last_used": "2026-06-25T23:48:43+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "2331a964-2f20-4cf0-a7a6-bfefc403316f",
+          "first_seen": "2026-06-25T23:49:28+00:00",
+          "last_used": "2026-06-25T23:49:28+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "a53059df-27a2-4395-a4a3-3d50a1cecaca",
+          "first_seen": "2026-06-25T23:55:21+00:00",
+          "last_used": "2026-06-25T23:55:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a345bb07-11d2-46e8-b71e-46785fc8f22e",
+          "first_seen": "2026-06-25T23:56:12+00:00",
+          "last_used": "2026-06-25T23:56:12+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "37f1557a-9ed2-4cc4-9844-e0c325db34f3",
+          "first_seen": "2026-06-26T00:15:33+00:00",
+          "last_used": "2026-06-26T00:15:33+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "b8c3ff90-26ff-4a25-938a-dcab61fae873",
+          "first_seen": "2026-06-26T00:16:23+00:00",
+          "last_used": "2026-06-26T00:16:23+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "414e83e2-f179-49f5-af3a-b9f5c78cd468",
+          "first_seen": "2026-06-26T00:19:14+00:00",
+          "last_used": "2026-06-26T00:19:14+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2808,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
