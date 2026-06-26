@@ -962,6 +962,86 @@ def main(argv: list[str]) -> int:
               file=sys.stderr)
         return 1
 
+    # ---- Pass 1.8: REPLACEMENT-block self-recursion prediction ---------
+    # Catches the failure mode that broke `eqViaNodeMap_injective`'s
+    # finalize on five files: in a REPLACEMENT block for name `X`, the
+    # `theorem refactor_X` proof body calls `X` (the unprefixed name),
+    # intending to reference the pre-refactor ORIGINAL theorem. That
+    # call resolves cleanly pre-cleanup (the ORIGINAL theorem with
+    # name `X` exists in the same file's ORIGINAL block). After Phase
+    # 7a's rename `refactor_X -> X` and ORIGINAL deletion, the call
+    # becomes self-recursive: `X` now means the new theorem itself, and
+    # Lean's structural-recursion checker fails to terminate.
+    #
+    # Detection: for each REPLACEMENT block named `X` that has a paired
+    # ORIGINAL block named `X` in the same file, scan the REPLACEMENT
+    # body (with `refactor_X` occurrences stripped, since those are the
+    # intentional self-references that will become `X` after rename and
+    # are fine) for any standalone occurrence of `X` as an identifier.
+    # If found, the rename will produce self-recursion.
+    self_rec_findings: dict[Path, list[tuple[str, int]]] = {}
+    _IDENT_CHAR_CLASS = r"[\w'.]"
+    for p, content in file_blobs.items():
+        blocks = _parse_marker_blocks(content)
+        orig_names = {b["name"] for b in blocks if b["kind"] == "original"}
+        hits: list[tuple[str, int]] = []
+        for b in blocks:
+            if b["kind"] != "replacement":
+                continue
+            name = b["name"]
+            if name not in orig_names:
+                continue            # no ORIGINAL counterpart; rename trap N/A
+            body = b["body"]
+            # Strip Lean comments to avoid matching in narrative prose.
+            body_clean = re.sub(r"--[^\n]*", "", body)
+            body_clean = re.sub(r"/-(?!\!)[\s\S]*?-/", "", body_clean)
+            # Strip every `refactor_X` occurrence (those are the
+            # intentional self-references; they become `X` after rename
+            # which is the correct, non-recursive shape inside this
+            # very theorem's signature/proof).
+            body_clean = re.sub(
+                r"(?<!" + _IDENT_CHAR_CLASS + r")refactor_" + re.escape(name)
+                + r"(?!" + _IDENT_CHAR_CLASS + r")",
+                "", body_clean,
+            )
+            # Now look for standalone `X` -- that's a call to the
+            # pre-rename ORIGINAL theorem, which will become self-
+            # recursive after cleanup.
+            pat = re.compile(
+                r"(?<!" + _IDENT_CHAR_CLASS + r")" + re.escape(name)
+                + r"(?!" + _IDENT_CHAR_CLASS + r")"
+            )
+            if pat.search(body_clean):
+                line_no = content[: b["start"]].count("\n") + 1
+                hits.append((name, line_no))
+        if hits:
+            self_rec_findings[p] = hits
+    if self_rec_findings:
+        print(f"\n  Predicted self-recursive call(s) AFTER cleanup rename "
+              f"(would break Phase 7b lake build's termination check):",
+              file=sys.stderr)
+        for p, hits in self_rec_findings.items():
+            try:
+                rel = p.relative_to(REPO_ROOT)
+            except ValueError:
+                rel = p
+            for name, ln in hits:
+                print(f"    - {rel}:{ln}: REPLACEMENT block '{name}' "
+                      f"references '{name}' inside its proof body. "
+                      f"Pre-cleanup this resolves to the ORIGINAL "
+                      f"theorem '{name}'. Post-cleanup the ORIGINAL is "
+                      f"deleted and `refactor_{name}` is renamed to "
+                      f"`{name}`, making the reference self-recursive.",
+                      file=sys.stderr)
+        print(f"\n  Fix: in the REPLACEMENT block, extract the pre-"
+              f"refactor proof body as a `private` helper with a "
+              f"different name (e.g. `{name}_imageEqs` / "
+              f"`{name}_preInjOn`), and call THAT helper from the "
+              f"new theorem's body. See `manager.md` § Refactor rows "
+              f"for the helper-extraction pattern. Re-run finalize.\n",
+              file=sys.stderr)
+        return 1
+
     # Pass 2: apply transforms using the global name set
     transformed_writes: list[tuple[Path, str]] = []
     total_orig_deleted = 0
