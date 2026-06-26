@@ -417,10 +417,10 @@
       "section": "3.2",
       "title": "DisjointHardInterventions",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-26",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `eqViaNodeMap_injective`; it was pulled in because root(s) `claim_3_7` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
@@ -436,7 +436,7 @@
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
@@ -456,8 +456,23 @@
         "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "56304a31-b2f4-4d39-bb20-054122ef259d",
+          "first_seen": "2026-06-26T00:26:24+00:00",
+          "last_used": "2026-06-26T00:26:24+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "028df1af-5bd3-4b5f-833a-895dda2d65c3",
+          "first_seen": "2026-06-26T00:29:15+00:00",
+          "last_used": "2026-06-26T00:29:15+00:00"
+        }
+      ],
+      "time_needed_to_solve": 529,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
