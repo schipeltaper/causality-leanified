@@ -492,10 +492,10 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-26",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `eqViaNodeMap_injective`; it was pulled in because root(s) `claim_3_7` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
@@ -505,17 +505,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -528,11 +528,82 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint hard interventions]\n    Let $G=(J,V,E,L)$ be a CDMG and $W_1, W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\doit(I_{W_1})} \n      =  G_{\\doit(I_{W_1 \\cup W_2})}. \\]\n      We also have:\n      \\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\n   % So there is not ambiguity in the following notations and identifications:\n   % \\[ G(V|\\doit(J\\cup I_{W_1} \\cup I_{W_2})) = G(V|\\doit(J\\cup I_{W_1 \\cup W_2})),\n   % \\qquad G(V\\sm W_2|\\doit(W_2 \\cup J\\cup I_{W_1})).\\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5a387aed-3869-4538-afe1-75a815471794",
+          "first_seen": "2026-06-26T00:37:12+00:00",
+          "last_used": "2026-06-26T00:37:12+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "dd47a7bf-a7d8-45ac-aea4-c360577a40b6",
+          "first_seen": "2026-06-26T00:46:13+00:00",
+          "last_used": "2026-06-26T00:46:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "0f90773b-5ef7-425e-bfee-7212e15dc480",
+          "first_seen": "2026-06-26T00:46:54+00:00",
+          "last_used": "2026-06-26T00:46:54+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "c2f9f663-52d6-4a54-8243-384ef6a0daa9",
+          "first_seen": "2026-06-26T00:47:15+00:00",
+          "last_used": "2026-06-26T00:47:15+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4f426ca8-dfb3-4163-b972-08c7fb91124d",
+          "first_seen": "2026-06-26T00:48:03+00:00",
+          "last_used": "2026-06-26T00:48:03+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "ce301ff5-9c79-4566-a96d-2602a5443ce4",
+          "first_seen": "2026-06-26T00:51:21+00:00",
+          "last_used": "2026-06-26T00:51:21+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "171ce9ad-e9c8-42a9-a697-ab7fe7c5c042",
+          "first_seen": "2026-06-26T00:52:19+00:00",
+          "last_used": "2026-06-26T00:52:19+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8d3dc8a8-c8a8-4834-982d-0cea3b1cd0a6",
+          "first_seen": "2026-06-26T01:04:39+00:00",
+          "last_used": "2026-06-26T01:04:39+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e8867426-04a0-4be8-8ae5-c521c14e1cf3",
+          "first_seen": "2026-06-26T01:05:13+00:00",
+          "last_used": "2026-06-26T01:05:13+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "aa15e62c-a76d-4c59-816f-22f195cdd60f",
+          "first_seen": "2026-06-26T01:08:47+00:00",
+          "last_used": "2026-06-26T01:08:47+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2555,
       "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
       "wording_check": {
         "done": true,
