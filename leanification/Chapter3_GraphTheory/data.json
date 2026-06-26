@@ -2681,7 +2681,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-09",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
       "lean_files": [
@@ -2691,7 +2691,7 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 1,
-        "review_design": 0,
+        "review_design": 1,
         "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
@@ -2700,7 +2700,7 @@
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 1,
+        "spawn_agent_sub_task": 3,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2720,82 +2720,124 @@
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "a1797428-2447-43ca-8bc9-3ab4fd1acd5c",
-          "first_seen": "2026-06-17T20:19:40+00:00",
-          "last_used": "2026-06-17T20:19:40+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "44976c1a-da66-4510-a470-efec4249f56d",
-          "first_seen": "2026-06-17T20:19:57+00:00",
-          "last_used": "2026-06-17T20:19:57+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "1043ce2a-a029-4fcd-9b0c-64b01c28105f",
-          "first_seen": "2026-06-17T20:20:51+00:00",
-          "last_used": "2026-06-17T20:20:51+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "822a560b-5d93-47ad-9eaf-83c1d098e102",
-          "first_seen": "2026-06-17T20:22:42+00:00",
-          "last_used": "2026-06-17T20:22:42+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "f1ac89b5-1a03-4425-95da-afc81547fa0e",
-          "first_seen": "2026-06-17T20:24:27+00:00",
-          "last_used": "2026-06-17T20:24:27+00:00"
+          "session_id": "1b9f1df9-4807-42d8-9c68-07427023c6fe",
+          "first_seen": "2026-06-25T22:21:03+00:00",
+          "last_used": "2026-06-25T22:21:03+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "77545399-744b-43a5-a1c5-57db33aca43f",
-          "first_seen": "2026-06-17T20:42:14+00:00",
-          "last_used": "2026-06-17T20:42:14+00:00"
+          "session_id": "9be61236-d7c4-454e-b0ef-2d35baac526f",
+          "first_seen": "2026-06-25T22:30:13+00:00",
+          "last_used": "2026-06-25T22:30:13+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "8ccd4699-1791-4a91-97fd-e6ea8f4dca3d",
-          "first_seen": "2026-06-17T20:43:43+00:00",
-          "last_used": "2026-06-17T20:43:43+00:00"
+          "session_id": "c2570c97-61b4-47de-a104-aa81eeb1eaec",
+          "first_seen": "2026-06-25T22:31:03+00:00",
+          "last_used": "2026-06-25T22:31:03+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "fb319a4c-5c85-4ff3-89e2-539ad62b9c73",
+          "first_seen": "2026-06-25T22:31:34+00:00",
+          "last_used": "2026-06-25T22:31:34+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "8dd859e9-bd52-409f-99f9-edbc68bbfc46",
+          "first_seen": "2026-06-25T22:32:21+00:00",
+          "last_used": "2026-06-25T22:32:21+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "64057c0f-86ea-4881-ae42-53eb72a70cf1",
+          "first_seen": "2026-06-25T22:36:08+00:00",
+          "last_used": "2026-06-25T22:36:08+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "3346bf66-251b-4b38-830f-5dab60999578",
+          "first_seen": "2026-06-25T22:37:13+00:00",
+          "last_used": "2026-06-25T22:37:13+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "60475a6e-8962-457a-9a0d-f152226eb7bf",
+          "first_seen": "2026-06-25T23:02:26+00:00",
+          "last_used": "2026-06-25T23:02:26+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "72a2f6cc-9c3a-4c66-9b0c-788e30b0fc77",
+          "first_seen": "2026-06-25T23:03:44+00:00",
+          "last_used": "2026-06-25T23:03:44+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "3c34c439-3be3-4f5c-a1e4-414c81070bf3",
+          "first_seen": "2026-06-25T23:08:09+00:00",
+          "last_used": "2026-06-25T23:08:09+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c2d2527d-1b4a-4f56-afc0-5ab48142ca73",
+          "first_seen": "2026-06-25T23:09:29+00:00",
+          "last_used": "2026-06-25T23:09:29+00:00"
         },
         {
           "kind": "verify_equivalence",
           "spawned_by": "manager",
-          "session_id": "0f1292ef-a18a-4fe0-b9ef-93b530b0ee04",
-          "first_seen": "2026-06-17T20:45:32+00:00",
-          "last_used": "2026-06-17T20:45:32+00:00"
+          "session_id": "0e14bb3a-7ed6-492a-9164-e3d4217bc274",
+          "first_seen": "2026-06-25T23:12:36+00:00",
+          "last_used": "2026-06-25T23:12:36+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "52217ea4-0a94-42d6-82da-cc4cf19f29ff",
-          "first_seen": "2026-06-17T20:46:13+00:00",
-          "last_used": "2026-06-17T20:46:13+00:00"
+          "session_id": "4eb425f7-8dd0-4752-95a8-71877193dd7c",
+          "first_seen": "2026-06-25T23:13:50+00:00",
+          "last_used": "2026-06-25T23:13:50+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "a531019e-0415-4c63-8d98-604f47afc6aa",
+          "first_seen": "2026-06-25T23:19:29+00:00",
+          "last_used": "2026-06-25T23:19:29+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "a1e652c5-9e8a-4b7c-a30c-3eb01d79e90f",
+          "first_seen": "2026-06-25T23:19:56+00:00",
+          "last_used": "2026-06-25T23:19:56+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "e3c72dc3-4e30-4c5f-ab66-d8d6a8643213",
-          "first_seen": "2026-06-17T20:48:57+00:00",
-          "last_used": "2026-06-17T20:48:57+00:00"
+          "session_id": "26874a0a-9e40-4f41-a619-7779b2ed2d3e",
+          "first_seen": "2026-06-25T23:23:43+00:00",
+          "last_used": "2026-06-25T23:23:43+00:00"
         }
       ],
-      "time_needed_to_solve": 3293,
+      "time_needed_to_solve": 4289,
       "addition_to_the_LN": "[cdmg_vs_cadmg_terminology_mismatch] The term \"CADMG\" appearing in the statement is a typographical inconsistency and should be read as \"CDMG\". The node-splitting operation $\\spl(\\cdot)$ takes a CDMG to a CDMG, so both iterated splittings $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ and $\\lp G_{\\spl(W_2)} \\rp_{\\spl(W_1)}$, as well as $G_{\\spl(W_1 \\dcup W_2)}$, are CDMGs, and the asserted equality is an equality of CDMGs.",
       "wording_check": {
         "done": true,
         "output": "```\nSUBTLETY:\nid: cdmg_vs_cadmg_terminology_drift\nexplanation: The opening of the lemma declares \"Let $G=(J,V,E,L)$ be a CDMG\" and then the prose says \"the CDMG obtained from first node-splitting $W_1$ and then node-splitting $W_2$ is the same CADMG that arises from first node-splitting $W_2$...\". Note the drift from \"CDMG\" to \"CADMG\" mid-sentence. Either (a) these are intended to be synonymous in the LN — in which case picking one consistently would help — or (b) one is a typo for the other. If node-splitting is meant to land in CADMGs (i.e., the result is always acyclic), then the input \"CDMG\" probably should have been \"CADMG\" too (or vice versa). Downstream, a formalizer who reads this literally has to decide which signature to use for `node_split` (CDMG → CDMG, CDMG → CADMG, or CADMG → CADMG).\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_subset_of_output_nodes_after_first_split\nexplanation: The hypothesis is \"$W_1, W_2 \\ins V$ two disjoint subsets of the output nodes of $G$.\" The iterated expression $\\lp G_{\\spl(W_1)} \\rp_{\\spl(W_2)}$ then applies node-splitting to $W_2$ inside $G_{\\spl(W_1)}$, which only makes sense if $W_2$ is a subset of the output nodes of $G_{\\spl(W_1)}$ — not of the original $G$. Node-splitting typically removes the split nodes from $V$ and adds fresh \"split copies\" elsewhere, so after splitting $W_1$ the output-node set becomes something like $(V \\setminus W_1) \\cup \\text{copies}(W_1)$. Disjointness $W_1 \\cap W_2 = \\emptyset$ then *does* give $W_2 \\subseteq V \\setminus W_1 \\subseteq V_{\\spl(W_1)}$, so the iterated splitting *is* well-defined — but only conditional on the precise behavior of node-splitting in def_3_11. The lemma never states this well-definedness condition explicitly; it is left implicit in the hypothesis \"disjoint subsets of the output nodes\". A formalizer will need to discharge \"$W_2$ is still a subset of output nodes after splitting $W_1$\" as a side-condition, and this depends crucially on whether def_3_11 keeps the unsplit output nodes in the output set.\nEND_SUBTLETY\n\nSUBTLETY:\nid: empty_or_singleton_disjoint_union_degenerate_cases\nexplanation: The right-hand side uses $W_1 \\dcup W_2$ (disjoint union). For the degenerate case $W_1 = \\emptyset$ (or $W_2 = \\emptyset$), the lemma reduces to $G_{\\spl(\\emptyset)})_{\\spl(W_2)} = G_{\\spl(W_2)} = G_{\\spl(\\emptyset \\dcup W_2)}$, which requires $G_{\\spl(\\emptyset)} = G$ — i.e., node-splitting the empty set is the identity. This is presumably true, but it is not stated in this lemma's text; the lemma silently assumes it. Similarly, the lemma says nothing about whether \"disjoint\" allows $W_1 = W_2 = \\emptyset$ (vacuously disjoint). A literal reader could ask whether the lemma is vacuous in those cases, or whether the author intended $W_1, W_2$ to be nonempty.\nEND_SUBTLETY\n```",
         "session": "48a24061-bd32-4442-bda1-6568d4eda46e"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "claim",
@@ -2807,7 +2849,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-09",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
       "lean_files": [
@@ -2816,7 +2858,7 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 1,
+        "verify_tex_proof": 0,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
@@ -2826,7 +2868,7 @@
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 2,
+        "spawn_agent_sub_task": 0,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -2839,89 +2881,33 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 1
+        "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splittings commute]\n   Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes of $G$.\n   Then the CDMG obtained from first hard intervening on $W_1$ and then node-splitting $W_2$ is the same CDMG that arises from first node-splitting $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\spl(W_2)} =  \\lp G_{\\spl(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "f9ec140f-93ce-47d2-af18-5bae009b4709",
-          "first_seen": "2026-06-17T21:10:17+00:00",
-          "last_used": "2026-06-17T21:10:17+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "a270ded8-8db3-419c-a6f8-805d18c2622a",
-          "first_seen": "2026-06-17T21:13:58+00:00",
-          "last_used": "2026-06-17T21:13:58+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6c960c33-c5ee-4cbd-a8a9-b20f1055c33f",
-          "first_seen": "2026-06-17T21:14:33+00:00",
-          "last_used": "2026-06-17T21:14:33+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "1277b857-6c15-47df-a25f-ace0344ea78d",
-          "first_seen": "2026-06-17T21:15:07+00:00",
-          "last_used": "2026-06-17T21:15:07+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "0b99209a-79e1-492c-be11-522301982c37",
-          "first_seen": "2026-06-17T21:15:38+00:00",
-          "last_used": "2026-06-17T21:15:38+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "ac7d83d5-bbd8-4a6e-9c62-fc751c43970a",
-          "first_seen": "2026-06-17T21:19:36+00:00",
-          "last_used": "2026-06-17T21:19:36+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "4910da94-8e48-432f-afad-b35d7f57e5a1",
-          "first_seen": "2026-06-17T21:20:22+00:00",
-          "last_used": "2026-06-17T21:20:22+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "117871f8-2451-40d2-859b-1fc61f3f4c75",
-          "first_seen": "2026-06-17T21:37:14+00:00",
-          "last_used": "2026-06-17T21:37:14+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6a341999-ad58-408d-8752-d1648c2246dc",
-          "first_seen": "2026-06-17T21:37:42+00:00",
-          "last_used": "2026-06-17T21:37:42+00:00"
+          "session_id": "b7ae1e58-a5ec-4470-a7bf-1e850c586c4d",
+          "first_seen": "2026-06-25T23:31:49+00:00",
+          "last_used": "2026-06-25T23:31:49+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "2edc06e1-6d6f-459d-ab7a-158ad426dd86",
-          "first_seen": "2026-06-17T21:44:01+00:00",
-          "last_used": "2026-06-17T21:44:01+00:00"
+          "session_id": "65a559f4-7630-4485-9dfc-d6b18343917d",
+          "first_seen": "2026-06-25T23:34:33+00:00",
+          "last_used": "2026-06-25T23:34:33+00:00"
         }
       ],
-      "time_needed_to_solve": 2418,
+      "time_needed_to_solve": 476,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
         "output": "NO_SUBTLETIES",
         "session": "58b791f0-6ac3-4fba-b0a3-c5ae55415a02"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "def",
@@ -3240,7 +3226,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-10",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
       "lean_files": [
@@ -3279,82 +3265,82 @@
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "32b5a512-0238-4598-8767-e333a5854533",
-          "first_seen": "2026-06-17T23:41:39+00:00",
-          "last_used": "2026-06-17T23:41:39+00:00"
+          "session_id": "b0091387-5f36-4d09-ae36-bcecaec67ef2",
+          "first_seen": "2026-06-25T23:41:43+00:00",
+          "last_used": "2026-06-25T23:41:43+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "805ffc51-2fa6-4464-bbf8-81691a9ce7f2",
-          "first_seen": "2026-06-17T23:45:10+00:00",
-          "last_used": "2026-06-17T23:45:10+00:00"
+          "session_id": "08fe6b7c-becb-4b4b-a2fb-e9a415ede2be",
+          "first_seen": "2026-06-25T23:47:50+00:00",
+          "last_used": "2026-06-25T23:47:50+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "38c45b5f-fb31-4932-b1f1-10ba7825084c",
-          "first_seen": "2026-06-17T23:46:02+00:00",
-          "last_used": "2026-06-17T23:46:02+00:00"
+          "session_id": "0cc35dbe-5b06-4b5e-aacb-1d98ac513c8f",
+          "first_seen": "2026-06-25T23:48:20+00:00",
+          "last_used": "2026-06-25T23:48:20+00:00"
         },
         {
           "kind": "verify_tex_statement_plus_proof",
           "spawned_by": "manager",
-          "session_id": "83c21a22-5064-43bd-b8e0-32b21411cbab",
-          "first_seen": "2026-06-17T23:46:31+00:00",
-          "last_used": "2026-06-17T23:46:31+00:00"
+          "session_id": "457fa500-fa46-4a0c-b3ca-7a80595c72f2",
+          "first_seen": "2026-06-25T23:48:43+00:00",
+          "last_used": "2026-06-25T23:48:43+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "cf85de60-68d5-4651-b2b7-d9af33e7ea69",
-          "first_seen": "2026-06-17T23:47:23+00:00",
-          "last_used": "2026-06-17T23:47:23+00:00"
+          "session_id": "2331a964-2f20-4cf0-a7a6-bfefc403316f",
+          "first_seen": "2026-06-25T23:49:28+00:00",
+          "last_used": "2026-06-25T23:49:28+00:00"
         },
         {
           "kind": "verify_tex_proof",
           "spawned_by": "manager",
-          "session_id": "e308a541-f2fe-4e52-85c6-b7148682c9b3",
-          "first_seen": "2026-06-17T23:49:38+00:00",
-          "last_used": "2026-06-17T23:49:38+00:00"
+          "session_id": "a53059df-27a2-4395-a4a3-3d50a1cecaca",
+          "first_seen": "2026-06-25T23:55:21+00:00",
+          "last_used": "2026-06-25T23:55:21+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "10966938-f962-4b70-b1b6-dac1f02681af",
-          "first_seen": "2026-06-17T23:50:22+00:00",
-          "last_used": "2026-06-17T23:50:22+00:00"
+          "session_id": "a345bb07-11d2-46e8-b71e-46785fc8f22e",
+          "first_seen": "2026-06-25T23:56:12+00:00",
+          "last_used": "2026-06-25T23:56:12+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "192de13c-027f-44ee-b66f-24ad46ae9cd4",
-          "first_seen": "2026-06-17T23:57:58+00:00",
-          "last_used": "2026-06-17T23:57:58+00:00"
+          "session_id": "37f1557a-9ed2-4cc4-9844-e0c325db34f3",
+          "first_seen": "2026-06-26T00:15:33+00:00",
+          "last_used": "2026-06-26T00:15:33+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "0675d563-7405-491d-89bb-f0266e46d5ce",
-          "first_seen": "2026-06-17T23:58:52+00:00",
-          "last_used": "2026-06-17T23:58:52+00:00"
+          "session_id": "b8c3ff90-26ff-4a25-938a-dcab61fae873",
+          "first_seen": "2026-06-26T00:16:23+00:00",
+          "last_used": "2026-06-26T00:16:23+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "a5698158-4214-4ad9-8a31-ffb0f7c7c6a1",
-          "first_seen": "2026-06-18T00:02:41+00:00",
-          "last_used": "2026-06-18T00:02:41+00:00"
+          "session_id": "414e83e2-f179-49f5-af3a-b9f5c78cd468",
+          "first_seen": "2026-06-26T00:19:14+00:00",
+          "last_used": "2026-06-26T00:19:14+00:00"
         }
       ],
-      "time_needed_to_solve": 1928,
+      "time_needed_to_solve": 2808,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
         "output": "NO_SUBTLETIES",
         "session": "e8737303-aafa-4b2e-982e-c4759d9e7fda"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "claim",
@@ -3366,7 +3352,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-10",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
       "lean_files": [
@@ -3375,17 +3361,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 1,
+        "verify_tex_proof": 0,
         "review_design": 0,
-        "verify_equivalence": 1,
+        "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
+        "add_design_choice_comments": 0,
         "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 2,
+        "spawn_agent_sub_task": 0,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3398,117 +3384,33 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 1
+        "verify_tex_statement_plus_proof": 0
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Disjoint hard interventions and node-splitting hard interventions commute]\n   Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n   Then the CADMG obtained from first hard intervening on $W_1$ and then node-splitting on $W_2$ is the same CADMG that arises from first node-splitting on $W_2$ and then hard intervening on $W_1$.\n      \\[ \\lp G_{\\doit(W_1)} \\rp_{\\swig(W_2)} =  \\lp G_{\\swig(W_2)} \\rp_{\\doit(W_1)}.   \\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "bd6661f3-e95f-4fcd-b1f0-1d7c6d5e856c",
-          "first_seen": "2026-06-18T00:14:30+00:00",
-          "last_used": "2026-06-18T00:14:30+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "46e12a92-3dea-454d-a7d5-775260d45339",
-          "first_seen": "2026-06-18T00:19:19+00:00",
-          "last_used": "2026-06-18T00:19:19+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "d9e18958-0eab-48ea-8e98-33a455f21e08",
-          "first_seen": "2026-06-18T00:19:53+00:00",
-          "last_used": "2026-06-18T00:19:53+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "6f2cd8c5-da27-44dc-aa37-2577d574a766",
-          "first_seen": "2026-06-18T00:20:11+00:00",
-          "last_used": "2026-06-18T00:20:11+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "c50e0142-f3b3-44c1-aa7b-87e6bf3fcc28",
-          "first_seen": "2026-06-18T00:21:00+00:00",
-          "last_used": "2026-06-18T00:21:00+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "174ea864-8ad5-4c79-ac96-2b6b7fc3dda0",
-          "first_seen": "2026-06-18T00:24:08+00:00",
-          "last_used": "2026-06-18T00:24:08+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "ceb39733-8d8e-4713-845d-c6eadd390850",
-          "first_seen": "2026-06-18T00:25:24+00:00",
-          "last_used": "2026-06-18T00:25:24+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "36419bbd-d902-4dd2-96cb-f2b631a00630",
-          "first_seen": "2026-06-18T00:33:58+00:00",
-          "last_used": "2026-06-18T00:33:58+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "526bfb88-a68f-434e-b755-bdc3104632a8",
-          "first_seen": "2026-06-18T00:34:45+00:00",
-          "last_used": "2026-06-18T00:34:45+00:00"
-        },
-        {
-          "kind": "verify_equivalence",
-          "spawned_by": "manager",
-          "session_id": "035a746e-0e61-4e48-a3f0-1a45c306aa92",
-          "first_seen": "2026-06-18T00:37:20+00:00",
-          "last_used": "2026-06-18T00:37:20+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "37440f72-843b-4793-b5dc-f80360d5476c",
-          "first_seen": "2026-06-18T00:38:14+00:00",
-          "last_used": "2026-06-18T00:38:14+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "479e5669-a700-4ef8-a040-3cc1d49b4cd6",
-          "first_seen": "2026-06-18T00:47:17+00:00",
-          "last_used": "2026-06-18T00:47:17+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "27c6f832-2208-42ce-9948-de003dd64727",
-          "first_seen": "2026-06-18T00:47:39+00:00",
-          "last_used": "2026-06-18T00:47:39+00:00"
+          "session_id": "56304a31-b2f4-4d39-bb20-054122ef259d",
+          "first_seen": "2026-06-26T00:26:24+00:00",
+          "last_used": "2026-06-26T00:26:24+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "83df32bf-eda2-495c-a24c-2fe487a22a4f",
-          "first_seen": "2026-06-18T00:52:03+00:00",
-          "last_used": "2026-06-18T00:52:03+00:00"
+          "session_id": "028df1af-5bd3-4b5f-833a-895dda2d65c3",
+          "first_seen": "2026-06-26T00:29:15+00:00",
+          "last_used": "2026-06-26T00:29:15+00:00"
         }
       ],
-      "time_needed_to_solve": 2828,
+      "time_needed_to_solve": 529,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
         "output": "Looking at this claim, I need to check whether the literal wording introduces any ambiguity, unintended corner cases, internal inconsistency, or arbitrariness.\n\nLet me trace through the structure:\n- $G = (J, V, E, L)$ is a CADMG\n- $W_1 \\subseteq J \\cup V$ (can include context nodes)\n- $W_2 \\subseteq V$ (must be random/observable nodes)\n- \"two disjoint subsets\" → $W_1 \\cap W_2 = \\emptyset$\n\nChecking compositional well-definedness:\n- LHS $(G_{\\doit(W_1)})_{\\swig(W_2)}$: After $\\doit(W_1)$, $W_2 \\subseteq V \\setminus W_1 \\subseteq V_{\\doit(W_1)}$, so $\\swig(W_2)$ is well-defined.\n- RHS $(G_{\\swig(W_2)})_{\\doit(W_1)}$: After $\\swig(W_2)$, $W_1 \\cap V \\subseteq V \\setminus W_2 \\subseteq V_{\\swig(W_2)}$ and $W_1 \\cap J \\subseteq J_{\\swig(W_2)}$, so $\\doit(W_1)$ is well-defined.\n\nChecking degenerate cases:\n- $W_1 = \\emptyset$ or $W_2 = \\emptyset$: trivially commutes.\n- $W_1 \\cap J \\neq \\emptyset$: intervening on context nodes is presumably a no-op, no harm done.\n\nEdge interactions across $W_1 / W_2$ boundary:\n- $a \\in W_1 \\cap V$, $b \\in W_2$, edge $a \\to b$: preserved in both orderings (becomes $a \\to b_{\\text{fixed}}$).\n- $a \\in W_2$, $b \\in W_1$, edge $a \\to b$: removed in both orderings.\n- Bidirected edges similarly consistent.\n\nThe disjointness phrasing is unambiguous, the equality is structural CADMG equality, and the formula matches the prose. Nothing literal in the text creates a counterintuitive corner case or hidden ambiguity.\n\nNO_SUBTLETIES",
         "session": "dfdc3fa1-a11a-4a9d-ae3d-74ea2174d4fa"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "claim",
@@ -3863,7 +3765,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-12",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
       "lean_files": [
@@ -3880,9 +3782,9 @@
         "add_design_choice_comments": 0,
         "solved": 1,
         "refactor": 0,
-        "make_plan": 1,
+        "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 1,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -3902,82 +3804,82 @@
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "e123036d-d08b-43e9-97bf-a78e8e15ea30",
-          "first_seen": "2026-06-18T03:16:46+00:00",
-          "last_used": "2026-06-18T03:16:46+00:00"
-        },
-        {
-          "kind": "make_plan",
-          "spawned_by": "manager",
-          "session_id": "3cd883dc-9b4f-4876-bf3d-1df3e0ce4174",
-          "first_seen": "2026-06-18T03:23:50+00:00",
-          "last_used": "2026-06-18T03:23:50+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "4e63a64f-ca91-4eac-9f57-5ff0b85e7bfd",
-          "first_seen": "2026-06-18T03:25:03+00:00",
-          "last_used": "2026-06-18T03:25:03+00:00"
+          "session_id": "5a387aed-3869-4538-afe1-75a815471794",
+          "first_seen": "2026-06-26T00:37:12+00:00",
+          "last_used": "2026-06-26T00:37:12+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "af1e594e-4f91-4dd3-a039-a351b69418c0",
-          "first_seen": "2026-06-18T03:42:46+00:00",
-          "last_used": "2026-06-18T03:42:46+00:00"
+          "session_id": "dd47a7bf-a7d8-45ac-aea4-c360577a40b6",
+          "first_seen": "2026-06-26T00:46:13+00:00",
+          "last_used": "2026-06-26T00:46:13+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "67f23216-1159-444f-8cd7-0695461db4e3",
-          "first_seen": "2026-06-18T03:43:57+00:00",
-          "last_used": "2026-06-18T03:43:57+00:00"
+          "session_id": "0f90773b-5ef7-425e-bfee-7212e15dc480",
+          "first_seen": "2026-06-26T00:46:54+00:00",
+          "last_used": "2026-06-26T00:46:54+00:00"
         },
         {
           "kind": "verify_tex_statement_plus_proof",
           "spawned_by": "manager",
-          "session_id": "eacef164-0804-44aa-a0c6-558c5cc07af6",
-          "first_seen": "2026-06-18T03:44:21+00:00",
-          "last_used": "2026-06-18T03:44:21+00:00"
+          "session_id": "c2f9f663-52d6-4a54-8243-384ef6a0daa9",
+          "first_seen": "2026-06-26T00:47:15+00:00",
+          "last_used": "2026-06-26T00:47:15+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "de84b794-3d0b-4e61-9dc5-690455cb05fa",
-          "first_seen": "2026-06-18T03:45:04+00:00",
-          "last_used": "2026-06-18T03:45:04+00:00"
+          "session_id": "4f426ca8-dfb3-4163-b972-08c7fb91124d",
+          "first_seen": "2026-06-26T00:48:03+00:00",
+          "last_used": "2026-06-26T00:48:03+00:00"
         },
         {
           "kind": "verify_tex_proof",
           "spawned_by": "manager",
-          "session_id": "33196d3b-b39d-4a3e-94b1-ba6e306eef7c",
-          "first_seen": "2026-06-18T03:48:52+00:00",
-          "last_used": "2026-06-18T03:48:52+00:00"
+          "session_id": "ce301ff5-9c79-4566-a96d-2602a5443ce4",
+          "first_seen": "2026-06-26T00:51:21+00:00",
+          "last_used": "2026-06-26T00:51:21+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "117c7608-4ab3-434e-b9d8-2902b59d2821",
-          "first_seen": "2026-06-18T03:49:42+00:00",
-          "last_used": "2026-06-18T03:49:42+00:00"
+          "session_id": "171ce9ad-e9c8-42a9-a697-ab7fe7c5c042",
+          "first_seen": "2026-06-26T00:52:19+00:00",
+          "last_used": "2026-06-26T00:52:19+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "8d3dc8a8-c8a8-4834-982d-0cea3b1cd0a6",
+          "first_seen": "2026-06-26T01:04:39+00:00",
+          "last_used": "2026-06-26T01:04:39+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "e8867426-04a0-4be8-8ae5-c521c14e1cf3",
+          "first_seen": "2026-06-26T01:05:13+00:00",
+          "last_used": "2026-06-26T01:05:13+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "29fbe433-2f71-4dfa-b39a-fc6cade515cd",
-          "first_seen": "2026-06-18T03:52:37+00:00",
-          "last_used": "2026-06-18T03:52:37+00:00"
+          "session_id": "aa15e62c-a76d-4c59-816f-22f195cdd60f",
+          "first_seen": "2026-06-26T01:08:47+00:00",
+          "last_used": "2026-06-26T01:08:47+00:00"
         }
       ],
-      "time_needed_to_solve": 2700,
+      "time_needed_to_solve": 2555,
       "addition_to_the_LN": "[doit_overloaded_for_node_addition_vs_hard_intervention] The notation $G_{\\doit(\\cdot)}$ is overloaded in this lemma and is disambiguated by the type of its argument. For $W \\subseteq J \\cup V$, the expression $G_{\\doit(I_W)}$ denotes the operation of adding the intervention nodes $I_W$ to $G$, whereas $G_{\\doit(W)}$ denotes the standard hard intervention on $W$ (severing incoming edges into $W$). When both an intervention-node set and a pre-existing-node set appear together within a single $\\doit(\\cdot)$, as in $G_{\\doit(I_{W_1}, W_2)}$, the notation denotes the composition of the two operations.",
       "wording_check": {
         "done": true,
         "output": "Now I have enough context. Let me audit the literal text of claim_3_14.\n\n**Analysis:**\n\nDef 3.13 takes $W \\ins J \\cup V$ (with $I_j := j$ for $j \\in J \\cap W$, and new nodes only for $W \\sm J$).\nDef 3.10 (hard intervention) also takes $W \\ins J \\cup V$.\nSo the hypothesis is internally consistent with both upstream definitions.\n\nThe first equation is unambiguous — both sides use only $\\doit(I_\\cdot)$.\n\nThe second equation introduces a notation that does not appear earlier in the LN.\n\n```\nSUBTLETY:\nid: ad_hoc_mixed_doit_notation_g_doit_iw1_comma_w2\nexplanation: The second equation uses the notation $G_{\\doit(I_{W_1}, W_2)}$, which is introduced here for the first time and is *not* defined anywhere in the LN — neither by Def~3.10 (hard intervention, which takes a single set $W$) nor by Def~3.13 (intervention-node extension, which takes a single set $W$). The lemma is the sole specification of this notation, and its meaning is given only implicitly via the equation\n\\[ \\lp G_{\\doit(I_{W_1})} \\rp_{\\doit(W_2)} = \\lp G_{\\doit(W_2)} \\rp_{\\doit(I_{W_1})} =  G_{\\doit(I_{W_1}, W_2)}. \\]\nA literal reader has to infer that the comma in \"$\\doit(I_{W_1}, W_2)$\" splits two semantically different operations: $I_{W_1}$ (intervention-node addition for $W_1$, per Def~3.13) and $W_2$ (hard intervention on $W_2$, per Def~3.10). The reader cannot, for example, infer this from the first equation, where \"$\\doit(I_{W_1 \\cup W_2})$\" denotes a *single* intervention-node operation on the union and has no comma in its argument. Contrast this with naive parsings the syntax admits:\n\\begin{itemize}\n\\item \"$\\doit$ on the set $I_{W_1} \\cup W_2$\" (treating the comma as $\\cup$),\n\\item \"$\\doit(I_{W_1, W_2})$\" with an indexed set $I_{W_1, W_2}$,\n\\item Both $I_{W_1}$ \\emph{and} $W_2$ treated as intervention-node operations (since the same $\\doit$ symbol covers both kinds elsewhere).\n\\end{itemize}\nNone of these are what is meant — the proof and the asymmetric roles of $W_1$ and $W_2$ in the LHS/middle force the intended reading. Downstream uses of \"$G_{\\doit(I_{W_1}, W_2)}$\" (if any) must remember that this is shorthand for \"first $\\doit(I_{W_1})$, then $\\doit(W_2)$\" (or vice versa, since the lemma proves they commute). Any formalization will need to either (a) pick one of the two orderings as the definition and prove the other as an equality, or (b) define a primitive \"mixed\" operation and prove both single-operation orderings equal it.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w_subseteq_j_makes_both_operations_near_identity\nexplanation: The hypothesis \"$W_1, W_2 \\ins J \\cup V$\" literally allows either set to lie entirely in $J$ (i.e.\\ to consist solely of input nodes). The literal definitions then make both interventions essentially trivial in this corner case:\n\\begin{itemize}\n\\item By Def~3.13 (line~811), $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$. For $W \\ins J$, $W \\sm J = \\emptyset$, so $G_{\\doit(I_W)} = G$ exactly.\n\\item By Def~3.10 (lines~299--302), $J_{\\doit(W)} := J \\cup W$ and $V_{\\doit(W)} := V \\sm W$. For $W \\ins J$, this gives $J \\cup W = J$ and $V \\sm W = V$ (since $J \\cap V = \\emptyset$), and removing \"incoming edges into $W$\" is also vacuous if the CDMG has no edges into $J$.\n\\end{itemize}\nConsequently, for, e.g., $W_1 \\ins J$ with $W_2 \\ins V$, the first equation reads $G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})} = G_{\\doit(I_{W_2})}$ — trivially true — and similarly for the second equation. A reader expecting the lemma to assert a non-trivial commutativity for *all* $W_1, W_2 \\ins J \\cup V$ does not get more than the $W \\sm J$ content; the $W \\cap J$ portion contributes nothing. The literal text does not flag this, and there is no companion hypothesis \"$W_1, W_2 \\ins V$\" (which would be the truly load-bearing case). This is not strictly incorrect, but a formalization that relies on the lemma being \"tight\" on $J \\cup V$ inputs should note that the substantive content reduces to $W_i \\sm J$.\nEND_SUBTLETY\n```",
         "session": "45a71638-c8c0-487f-951b-274057e099c0"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "claim",
@@ -3989,7 +3891,7 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-12",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
       "lean_files": [
@@ -3999,16 +3901,16 @@
         "expand_proof": 0,
         "correct_tex_proof": 0,
         "verify_tex_proof": 1,
-        "review_design": 1,
-        "verify_equivalence": 1,
+        "review_design": 0,
+        "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
-        "add_design_choice_comments": 1,
+        "add_design_choice_comments": 0,
         "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 1,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4028,110 +3930,82 @@
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "74c22184-4d25-4f93-a8b9-3bd665dd7cd0",
-          "first_seen": "2026-06-18T04:07:11+00:00",
-          "last_used": "2026-06-18T04:07:11+00:00"
+          "session_id": "c41f5c1d-92cd-4ded-bf2a-4d0fc55e77aa",
+          "first_seen": "2026-06-26T01:21:51+00:00",
+          "last_used": "2026-06-26T01:21:51+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "e7f95105-a9ec-46e9-85bc-a216622fb614",
-          "first_seen": "2026-06-18T04:32:24+00:00",
-          "last_used": "2026-06-18T04:32:24+00:00"
+          "session_id": "37e7b4c2-47e6-4243-8b4c-10a34fcff3e0",
+          "first_seen": "2026-06-26T01:40:32+00:00",
+          "last_used": "2026-06-26T01:40:32+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "6fb6f276-bf22-4b38-9b18-db182e28d8d7",
-          "first_seen": "2026-06-18T04:34:27+00:00",
-          "last_used": "2026-06-18T04:34:27+00:00"
+          "session_id": "c765c582-0f3d-4b3d-9a4d-9436b12237d0",
+          "first_seen": "2026-06-26T01:41:25+00:00",
+          "last_used": "2026-06-26T01:41:25+00:00"
         },
         {
           "kind": "verify_tex_statement_plus_proof",
           "spawned_by": "manager",
-          "session_id": "b1b231a0-997f-48ac-9e4f-71efb233b2c6",
-          "first_seen": "2026-06-18T04:34:48+00:00",
-          "last_used": "2026-06-18T04:34:48+00:00"
+          "session_id": "f57331a4-164a-4dd3-9f76-846542e2dffb",
+          "first_seen": "2026-06-26T01:42:11+00:00",
+          "last_used": "2026-06-26T01:42:11+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "f19afdec-e52c-4e77-b774-561db588958f",
-          "first_seen": "2026-06-18T04:35:32+00:00",
-          "last_used": "2026-06-18T04:35:32+00:00"
+          "session_id": "5af1e337-d231-4e6d-bb49-f336a2e6f604",
+          "first_seen": "2026-06-26T01:43:01+00:00",
+          "last_used": "2026-06-26T01:43:01+00:00"
         },
         {
           "kind": "verify_tex_proof",
           "spawned_by": "manager",
-          "session_id": "04ea27d7-866b-4efe-b8f8-ef4d2ed25fd7",
-          "first_seen": "2026-06-18T04:40:21+00:00",
-          "last_used": "2026-06-18T04:40:21+00:00"
+          "session_id": "00a5a18f-d2e1-43e2-9ffd-c0aac8368a88",
+          "first_seen": "2026-06-26T01:46:53+00:00",
+          "last_used": "2026-06-26T01:46:53+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "16844b4e-4b68-4d24-ade3-7726a86482cc",
-          "first_seen": "2026-06-18T04:41:44+00:00",
-          "last_used": "2026-06-18T04:41:44+00:00"
+          "session_id": "01d79a87-945d-4aba-800f-bb6b5f1821a5",
+          "first_seen": "2026-06-26T01:47:45+00:00",
+          "last_used": "2026-06-26T01:47:45+00:00"
         },
         {
-          "kind": "review_design",
+          "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "cf9fe3a3-7916-4eb5-a9d8-310936035032",
-          "first_seen": "2026-06-18T04:44:58+00:00",
-          "last_used": "2026-06-18T04:44:58+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "01b3e2e9-969d-4bf3-b0b7-5dffead2d728",
-          "first_seen": "2026-06-18T04:45:35+00:00",
-          "last_used": "2026-06-18T04:45:35+00:00"
-        },
-        {
-          "kind": "verify_equivalence",
-          "spawned_by": "manager",
-          "session_id": "304c4adc-568d-4ab8-9bd8-33acea855da4",
-          "first_seen": "2026-06-18T04:49:02+00:00",
-          "last_used": "2026-06-18T04:49:02+00:00"
+          "session_id": "169f2d7e-cd67-48ad-8301-479caf82c7a5",
+          "first_seen": "2026-06-26T02:02:58+00:00",
+          "last_used": "2026-06-26T02:02:58+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "630fc3d0-00e2-49d2-a698-b79fa3b2ada8",
-          "first_seen": "2026-06-18T04:50:18+00:00",
-          "last_used": "2026-06-18T04:50:18+00:00"
-        },
-        {
-          "kind": "add_design_choice_comments",
-          "spawned_by": "manager",
-          "session_id": "066a1213-899b-48ac-ab64-78c18257afbd",
-          "first_seen": "2026-06-18T04:59:30+00:00",
-          "last_used": "2026-06-18T04:59:30+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "679ca5fa-bd63-4ca2-b960-178bbda030bd",
-          "first_seen": "2026-06-18T04:59:57+00:00",
-          "last_used": "2026-06-18T04:59:57+00:00"
+          "session_id": "4bf3e5b2-8ce5-43db-aaf1-057f8a28cab6",
+          "first_seen": "2026-06-26T02:04:09+00:00",
+          "last_used": "2026-06-26T02:04:09+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "c39c43c4-e67f-431a-8d9a-a72cc0731aab",
-          "first_seen": "2026-06-18T05:02:28+00:00",
-          "last_used": "2026-06-18T05:02:28+00:00"
+          "session_id": "cf17dbcc-f4f7-418c-89cc-1a4789f56699",
+          "first_seen": "2026-06-26T02:07:35+00:00",
+          "last_used": "2026-06-26T02:07:35+00:00"
         }
       ],
-      "time_needed_to_solve": 4186,
+      "time_needed_to_solve": 3395,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
         "output": "Looking at the claim, I'll examine it against def_3_13 (which it relies on) to find subtleties.\n\nKey findings from def_3_13 (`cdmg_intervention_nodes`):\n- `$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$`\n- `$J_{\\doit(I_W)}:= J\\, \\dot{\\cup} \\, \\lC I_w\\,|\\, w \\in W \\sm J \\rC$`\n- `$E_{\\doit(I_W)}:= E\\, \\dot{\\cup} \\, \\lC I_w \\tuh w \\,|\\, w \\in W\\sm J \\rC$`\n\nSo for `w ∈ W ∩ J`, no new node is introduced and no new edge is added — the doit operation is a no-op for these elements.\n\nAlso noticed in caption at line 757: \"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\" — this convention is explicitly acknowledged elsewhere but not in this claim's own text.\n\n```\nSUBTLETY:\nid: w2_in_J_makes_doit_a_no_op_via_Ij_identification\nexplanation: The claim allows $W_2 \\ins J \\cup V$ (rather than restricting to $W_2 \\ins V$), and the prose says \"introducing intervention nodes $I_{W_2}$\". But per Definition~\\ref{def:cdmg_intervention_nodes} (def_3_13), the convention is \"$I_W = \\{I_w \\,|\\, w \\in W\\}$ with $I_j:=j$ for $j \\in J \\cap W$\", and concretely $J_{\\doit(I_W)} := J \\dcup \\{I_w \\mid w \\in W \\sm J\\}$ (only adds nodes for $w \\in W \\sm J$) and $E_{\\doit(I_W)} := E \\dcup \\{I_w \\tuh w \\mid w \\in W \\sm J\\}$ (only adds edges for $w \\in W \\sm J$).\n\nThe literal reading \"introducing intervention nodes $I_{W_2}$\" naively suggests one new intervention node per element of $W_2$. But for $w \\in W_2 \\cap J$, $I_w := w$ is identified with the existing context node — no new node is introduced and no edge is added. The claim does not flag this convention to the reader, even though the same paper acknowledges it explicitly in the figure caption at line 757 (\"$I_{v_2}$ is identified with $v_2$ since $v_2$ is an input node\").\n\nCorner case: take $W_2 \\ins J$ entirely (e.g., $W_2 = \\{j\\}$ for some single context node $j \\in J$, with $W_1$ any subset of $V$). Then $G_{\\doit(I_{W_2})} = G$ (no change at all), and the lemma's equation degenerates to the trivial $G_{\\swig(W_1)} = G_{\\swig(W_1)}$. The claim is vacuously true, but the prose suggests something non-trivial is being commuted. A reader (or downstream formalizer) interpreting \"introducing intervention nodes $I_{W_2}$\" literally as \"adding $|W_2|$ new $I_w$ nodes to $J$\" would have an interpretation inconsistent with def_3_13. This matters because a formalization that constructs $I_{W_2}$ as a fresh disjoint set of size $|W_2|$ (rather than identifying $I_j = j$ for $j \\in J$) would silently disagree with the LN for any $W_2$ that intersects $J$.\nEND_SUBTLETY\n\nSUBTLETY:\nid: w2_partial_overlap_with_J_partial_no_op\nexplanation: A milder version of the corner case above: when $W_2 \\cap J \\neq \\emptyset$ but $W_2 \\cap V \\neq \\emptyset$ as well, the \"introducing intervention nodes $I_{W_2}$\" operation is a *partial* no-op — new nodes $\\{I_w \\mid w \\in W_2 \\sm J\\}$ are added for the $V$-elements of $W_2$, but nothing happens for the $J$-elements. The proof of the claim (lines 894-896) explicitly uses $J \\dcup \\{I_w \\mid w \\in W_2 \\sm J\\}$ rather than $J \\dcup \\{I_w \\mid w \\in W_2\\}$, confirming this convention.\n\nThe subtlety is that the claim's stated equation $\\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}$ uses the symbol \"$I_{W_2}$\" which, read naively as a set of $|W_2|$ fresh nodes, would suggest a different operation than what def_3_13 specifies. The literal type-level reading of the equation depends crucially on whether $I_w$ for $w \\in J$ is interpreted as a fresh node or as the existing $w$. The claim does not re-state this convention.\nEND_SUBTLETY\n```",
         "session": "e8e8c21d-c0da-4779-9c39-91f4c73d7714"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "def",
@@ -4744,193 +4618,11 @@
       "proven": "proven",
       "solved": "yes",
       "date_solved": "2026-06-14",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
       "lean_files": [
         "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean"
-      ],
-      "actions_tracking": {
-        "expand_proof": 0,
-        "correct_tex_proof": 0,
-        "verify_tex_proof": 1,
-        "review_design": 0,
-        "verify_equivalence": 0,
-        "verify_equivalence_strict": 0,
-        "verify_with_examples": 0,
-        "add_design_choice_comments": 0,
-        "solved": 1,
-        "refactor": 0,
-        "make_plan": 0,
-        "decompose": 0,
-        "spawn_agent_sub_task": 6,
-        "continue_agent": 0,
-        "new_manager": 1,
-        "reorder": 0,
-        "reset": 0,
-        "request_from_human": 0,
-        "mistake": 0,
-        "unmistake": 0,
-        "accept_deviation": 0,
-        "register_ln_subtlety": 0,
-        "no_action": 0,
-        "verify_tex_statement_only": 0,
-        "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 1
-      },
-      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "a4b74f46-e6d3-466f-80c1-c24837cefe20",
-          "first_seen": "2026-06-18T15:44:50+00:00",
-          "last_used": "2026-06-18T15:44:50+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "3ea9f666-c803-4b12-bc0c-ede94339edd9",
-          "first_seen": "2026-06-18T15:57:26+00:00",
-          "last_used": "2026-06-18T15:57:26+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "2a3b3d5c-02a3-42e8-a73c-d6b630bc8932",
-          "first_seen": "2026-06-18T15:58:17+00:00",
-          "last_used": "2026-06-18T15:58:17+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "d8372073-9fbe-4ea0-a789-d958ca9d34f4",
-          "first_seen": "2026-06-18T17:42:40+00:00",
-          "last_used": "2026-06-18T17:42:40+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "4d54b457-5168-4261-a5bf-ce10b7ddad18",
-          "first_seen": "2026-06-18T17:44:28+00:00",
-          "last_used": "2026-06-18T17:44:28+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "5aeb9d7b-0042-447e-a14d-7fdf5cadee08",
-          "first_seen": "2026-06-18T18:55:23+00:00",
-          "last_used": "2026-06-18T18:55:23+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "6515390c-312b-4f1c-92e8-69016f9f38e7",
-          "first_seen": "2026-06-18T18:56:25+00:00",
-          "last_used": "2026-06-18T18:56:25+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "c2b48e2a-d8db-4c26-aa3a-8cc806f5ec7b",
-          "first_seen": "2026-06-18T21:33:37+00:00",
-          "last_used": "2026-06-18T21:33:37+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "65f27492-d6af-496c-bdda-a31b5e470fb5",
-          "first_seen": "2026-06-18T21:35:23+00:00",
-          "last_used": "2026-06-18T21:35:23+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "25972e4d-6808-4387-977b-e33544944e78",
-          "first_seen": "2026-06-19T01:37:50+00:00",
-          "last_used": "2026-06-19T01:37:50+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "aa7fa1f1-4c7a-4c2d-b142-fba07dc48604",
-          "first_seen": "2026-06-19T01:38:55+00:00",
-          "last_used": "2026-06-19T01:38:55+00:00"
-        },
-        {
-          "kind": "spawn_agent_sub_task",
-          "spawned_by": "manager",
-          "session_id": "4db56023-6901-4db1-9b06-5074b6aa91eb",
-          "first_seen": "2026-06-19T01:40:33+00:00",
-          "last_used": "2026-06-19T01:40:33+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "31d9f619-1634-4ca8-892e-3cf924c80876",
-          "first_seen": "2026-06-19T01:41:50+00:00",
-          "last_used": "2026-06-19T01:41:50+00:00"
-        },
-        {
-          "kind": "verify_tex_statement_plus_proof",
-          "spawned_by": "manager",
-          "session_id": "03b86e44-5e25-4c5a-9068-2240a050c5c2",
-          "first_seen": "2026-06-19T01:42:20+00:00",
-          "last_used": "2026-06-19T01:42:20+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "4093d224-c0de-4a8e-9f1e-05f2ab81a6fd",
-          "first_seen": "2026-06-19T01:43:07+00:00",
-          "last_used": "2026-06-19T01:43:07+00:00"
-        },
-        {
-          "kind": "verify_tex_proof",
-          "spawned_by": "manager",
-          "session_id": "3ff4b2bf-a2e5-44a9-b72d-e5a282752fb7",
-          "first_seen": "2026-06-19T01:51:21+00:00",
-          "last_used": "2026-06-19T01:51:21+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "9999611b-3cd9-402d-9d55-7b4bcc7cd2df",
-          "first_seen": "2026-06-19T01:52:03+00:00",
-          "last_used": "2026-06-19T01:52:03+00:00"
-        },
-        {
-          "kind": "verify_row_solved",
-          "spawned_by": "manager",
-          "session_id": "0b0071b8-3ffa-439c-a113-6be52adce34b",
-          "first_seen": "2026-06-19T01:56:08+00:00",
-          "last_used": "2026-06-19T01:56:08+00:00"
-        }
-      ],
-      "time_needed_to_solve": 37233,
-      "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
-      "wording_check": {
-        "done": true,
-        "output": "Based on my analysis of the literal tex block:\n\nSUBTLETY:\nid: w1_may_contain_existing_intervention_nodes\nexplanation: The lemma states \"$W_1 \\ins J \\cup V$\", explicitly allowing $W_1$ to contain nodes that are already intervention nodes (i.e., $W_1 \\cap J$ may be nonempty). The behavior of $\\doit(\\cdot)$ on already-intervention nodes is not specified within this block, and the disjointness constraint with $W_2$ only restricts $W_1 \\cap V$ (since $W_2 \\ins V$ and $J \\cap V = \\emptyset$, disjointness places zero constraint on $W_1 \\cap J$).\n\nConcrete corner case: take $W_1 \\subseteq J$ entirely (allowed by the literal text). Then both sides should reduce to $G^{\\sm W_2}$ if $\\doit$ acts as identity on $J$-elements — but the LN never explicitly says this. A reader/formalizer must look outside this block (to the definition of $\\doit$) to know whether the $W_1 \\cap J$ part is a no-op, undefined, or has some other semantics. If the upstream definition restricts $\\doit$ to $V$-subsets only, then this lemma's quantification over $W_1 \\ins J \\cup V$ is literally ill-typed.\n\nDownstream impact: a Lean formalization will either need a coercion/normalization step that drops $W_1 \\cap J$, or will need to require $W_1 \\ins V$ to match the upstream definition. The wording \"two disjoint subsets of nodes from $G$\" plus $W_1 \\ins J \\cup V$ is broader than typical formulations and leaves the $W_1 \\cap J$ behavior arbitrary at this level.\nEND_SUBTLETY\n\nSUBTLETY:\nid: similar_statement_trailer_is_unspecified\nexplanation: The block closes with \"A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\" This sentence asserts two additional commutativity results without stating them precisely — neither the operations involved (e.g., what \"adding intervention nodes\" vs. $\\doit$ means here, what \"node-splitting interventions\" denotes) nor the precise side conditions (analogue of the $W_1, W_2$ disjointness, what subset constraints apply) are given.\n\nThe literal reading leaves it ambiguous whether the trailer is (a) part of the lemma's mathematical content (i.e., something one would need to formalize/prove alongside the main equation) or (b) merely a heuristic pointer to related results stated separately. If (a), a future formalizer cannot encode it without further input; if (b), the reader can ignore it here. The choice matters downstream when deciding the scope of the corresponding Lean theorem.\nEND_SUBTLETY",
-        "session": "17bd5297-f5ad-4f3a-91c1-779ea9732b45"
-      },
-      "last_refactored_at": "2026-06-19"
-    },
-    {
-      "def_or_claim": "claim",
-      "ref": "claim_3_19",
-      "section": "3.2",
-      "title": "MarginalizingOutThe",
-      "type": "lemma",
-      "formalized": "yes",
-      "proven": "proven",
-      "solved": "yes",
-      "date_solved": "2026-06-15",
-      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).",
-      "tex_file": "graphs.tex",
-      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
-      "lean_files": [
-        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean"
       ],
       "actions_tracking": {
         "expand_proof": 0,
@@ -4943,9 +4635,9 @@
         "add_design_choice_comments": 0,
         "solved": 1,
         "refactor": 0,
-        "make_plan": 1,
+        "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 2,
+        "spawn_agent_sub_task": 0,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -4960,73 +4652,185 @@
         "verify_tex_statement_equivalence": 0,
         "verify_tex_statement_plus_proof": 0
       },
+      "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalization and intervention commute]\n      Let $G=(J,V,E,L)$ be a CDMG and $W_1 \\ins J \\cup V$ and $W_2 \\ins V$ two disjoint subsets of nodes from $G$.\n      Then we have:\n      \\[ \\lp G_{\\doit(W_1)} \\rp^{\\sm W_2} = \\lp G^{\\sm W_2} \\rp_{\\doit(W_1)}. \\]\n     % This shows that the following notations are unambiguous:\n     % \\[G(V\\sm (W_1 \\cup W_2)|\\doit(W_1 \\cup J))=G_{\\doit(W_1)}^{\\sm W_2}.\\]\n      A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\n\\end{Lem}\n\\end{claimmark}",
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "33f5cbc7-a6d5-4e10-905f-b68ebe468e7e",
+          "first_seen": "2026-06-26T02:16:24+00:00",
+          "last_used": "2026-06-26T02:16:24+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "5acfeb2b-8947-49bc-a221-ca66804d0c1c",
+          "first_seen": "2026-06-26T02:18:21+00:00",
+          "last_used": "2026-06-26T02:18:21+00:00"
+        }
+      ],
+      "time_needed_to_solve": 639,
+      "addition_to_the_LN": "[trailing_similar_statement_two_unstated_claims] This lemma comprises three distinct claims, all of which must be formalized: (1) the explicit equation $(G_{\\doit(W_1)})^{\\sm W_2} = (G^{\\sm W_2})_{\\doit(W_1)}$ stated above; (2) the analogous commutativity of marginalization with adding intervention nodes; and (3) the analogous commutativity of marginalization with node-splitting interventions. Claims (2) and (3) are to be stated with analogous typing and disjointness side conditions on $W_1, W_2$, with the hard-intervention operator $\\doit(W_1)$ replaced by the corresponding intervention operation in each case.",
+      "wording_check": {
+        "done": true,
+        "output": "Based on my analysis of the literal tex block:\n\nSUBTLETY:\nid: w1_may_contain_existing_intervention_nodes\nexplanation: The lemma states \"$W_1 \\ins J \\cup V$\", explicitly allowing $W_1$ to contain nodes that are already intervention nodes (i.e., $W_1 \\cap J$ may be nonempty). The behavior of $\\doit(\\cdot)$ on already-intervention nodes is not specified within this block, and the disjointness constraint with $W_2$ only restricts $W_1 \\cap V$ (since $W_2 \\ins V$ and $J \\cap V = \\emptyset$, disjointness places zero constraint on $W_1 \\cap J$).\n\nConcrete corner case: take $W_1 \\subseteq J$ entirely (allowed by the literal text). Then both sides should reduce to $G^{\\sm W_2}$ if $\\doit$ acts as identity on $J$-elements — but the LN never explicitly says this. A reader/formalizer must look outside this block (to the definition of $\\doit$) to know whether the $W_1 \\cap J$ part is a no-op, undefined, or has some other semantics. If the upstream definition restricts $\\doit$ to $V$-subsets only, then this lemma's quantification over $W_1 \\ins J \\cup V$ is literally ill-typed.\n\nDownstream impact: a Lean formalization will either need a coercion/normalization step that drops $W_1 \\cap J$, or will need to require $W_1 \\ins V$ to match the upstream definition. The wording \"two disjoint subsets of nodes from $G$\" plus $W_1 \\ins J \\cup V$ is broader than typical formulations and leaves the $W_1 \\cap J$ behavior arbitrary at this level.\nEND_SUBTLETY\n\nSUBTLETY:\nid: similar_statement_trailer_is_unspecified\nexplanation: The block closes with \"A similar statement holds for marginalizations and adding intervention nodes, and also for marginalizations and node-splitting interventions.\" This sentence asserts two additional commutativity results without stating them precisely — neither the operations involved (e.g., what \"adding intervention nodes\" vs. $\\doit$ means here, what \"node-splitting interventions\" denotes) nor the precise side conditions (analogue of the $W_1, W_2$ disjointness, what subset constraints apply) are given.\n\nThe literal reading leaves it ambiguous whether the trailer is (a) part of the lemma's mathematical content (i.e., something one would need to formalize/prove alongside the main equation) or (b) merely a heuristic pointer to related results stated separately. If (a), a future formalizer cannot encode it without further input; if (b), the reader can ignore it here. The choice matters downstream when deciding the scope of the corresponding Lean theorem.\nEND_SUBTLETY",
+        "session": "17bd5297-f5ad-4f3a-91c1-779ea9732b45"
+      },
+      "last_refactored_at": "2026-06-26"
+    },
+    {
+      "def_or_claim": "claim",
+      "ref": "claim_3_19",
+      "section": "3.2",
+      "title": "MarginalizingOutThe",
+      "type": "lemma",
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-15",
+      "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nRefactored on 2026-06-26 via `eqViaNodeMap_injective` (see leanification/Chapter*/Refactor_eqViaNodeMap_injective_DONE_*/refactor_data.json).",
+      "tex_file": "graphs.tex",
+      "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
+      "lean_files": [
+        "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean"
+      ],
+      "actions_tracking": {
+        "expand_proof": 0,
+        "correct_tex_proof": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
+        "verify_equivalence_strict": 0,
+        "verify_with_examples": 0,
+        "add_design_choice_comments": 0,
+        "solved": 1,
+        "refactor": 0,
+        "make_plan": 0,
+        "decompose": 0,
+        "spawn_agent_sub_task": 2,
+        "continue_agent": 0,
+        "new_manager": 0,
+        "reorder": 0,
+        "reset": 0,
+        "request_from_human": 0,
+        "mistake": 0,
+        "unmistake": 0,
+        "accept_deviation": 0,
+        "register_ln_subtlety": 0,
+        "no_action": 0,
+        "verify_tex_statement_only": 0,
+        "verify_tex_statement_equivalence": 0,
+        "verify_tex_statement_plus_proof": 1
+      },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
       "agent_registry": [
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "0ff8aae4-244f-48ca-b4b9-d3f20314f4cc",
-          "first_seen": "2026-06-19T02:06:52+00:00",
-          "last_used": "2026-06-19T02:06:52+00:00"
-        },
-        {
-          "kind": "make_plan",
-          "spawned_by": "manager",
-          "session_id": "cbf08d02-65a5-4182-8324-5831f1e842c4",
-          "first_seen": "2026-06-19T02:12:27+00:00",
-          "last_used": "2026-06-19T02:12:27+00:00"
-        },
-        {
-          "kind": "manager",
-          "spawned_by": "manager",
-          "session_id": "2d3cdb33-06fe-4d42-9d53-e3e54cce78ec",
-          "first_seen": "2026-06-19T02:13:10+00:00",
-          "last_used": "2026-06-19T02:13:10+00:00"
+          "session_id": "bcad0f76-864e-4e3a-9a5b-efa1f555a963",
+          "first_seen": "2026-06-26T02:27:19+00:00",
+          "last_used": "2026-06-26T02:27:19+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "1eb488b6-1d24-484d-98bf-75fa9ca8ad48",
-          "first_seen": "2026-06-19T02:13:29+00:00",
-          "last_used": "2026-06-19T02:13:29+00:00"
+          "session_id": "fff96ded-1bc1-47a2-aa16-e41b425427ac",
+          "first_seen": "2026-06-26T02:34:24+00:00",
+          "last_used": "2026-06-26T02:34:24+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "1c389aa5-a975-4d29-8b7c-f78eb79aaf79",
-          "first_seen": "2026-06-19T02:14:44+00:00",
-          "last_used": "2026-06-19T02:14:44+00:00"
+          "session_id": "69169ec5-b582-485e-a357-4e1496a115f0",
+          "first_seen": "2026-06-26T02:34:57+00:00",
+          "last_used": "2026-06-26T02:34:57+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "dfea7f2e-5c02-4d85-a186-107dbc391589",
+          "first_seen": "2026-06-26T02:35:13+00:00",
+          "last_used": "2026-06-26T02:35:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6175420d-0996-4848-8e04-5482395ad9b3",
+          "first_seen": "2026-06-26T02:35:59+00:00",
+          "last_used": "2026-06-26T02:35:59+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "fa335e62-9d3f-40bd-a96b-5bd267649cb1",
+          "first_seen": "2026-06-26T02:38:41+00:00",
+          "last_used": "2026-06-26T02:38:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "02ed8cd6-726d-4450-9751-42b7266ea095",
+          "first_seen": "2026-06-26T02:39:59+00:00",
+          "last_used": "2026-06-26T02:39:59+00:00"
         },
         {
           "kind": "spawn_agent_sub_task",
           "spawned_by": "manager",
-          "session_id": "a0fcc6ef-151c-4524-bf6c-63acb94c9647",
-          "first_seen": "2026-06-19T03:14:28+00:00",
-          "last_used": "2026-06-19T03:14:28+00:00"
+          "session_id": "712ce071-e1eb-4985-af73-16e2b8a35199",
+          "first_seen": "2026-06-26T02:50:53+00:00",
+          "last_used": "2026-06-26T02:50:53+00:00"
         },
         {
           "kind": "manager",
           "spawned_by": "manager",
-          "session_id": "2ef9a5a7-50b0-4ed0-9691-23d72f61ba77",
-          "first_seen": "2026-06-19T03:15:29+00:00",
-          "last_used": "2026-06-19T03:15:29+00:00"
+          "session_id": "4c4f0dc7-ec2c-4d9a-b964-d5565ddb1f00",
+          "first_seen": "2026-06-26T02:51:54+00:00",
+          "last_used": "2026-06-26T02:51:54+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "83344928-b1b6-449b-9d3b-25a14467f126",
+          "first_seen": "2026-06-26T02:55:00+00:00",
+          "last_used": "2026-06-26T02:55:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1451461f-2f71-4fa2-9670-61dfe489d687",
+          "first_seen": "2026-06-26T02:56:15+00:00",
+          "last_used": "2026-06-26T02:56:15+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "cd8ef171-db0e-441c-b42f-3a90c4f6a5ad",
+          "first_seen": "2026-06-26T03:00:44+00:00",
+          "last_used": "2026-06-26T03:00:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ae332dd7-ff0f-48c3-9aa9-6f33f4758710",
+          "first_seen": "2026-06-26T03:01:27+00:00",
+          "last_used": "2026-06-26T03:01:27+00:00"
         },
         {
           "kind": "verify_row_solved",
           "spawned_by": "manager",
-          "session_id": "203c5d29-7631-4be0-8102-f4c1510dd69c",
-          "first_seen": "2026-06-19T03:20:20+00:00",
-          "last_used": "2026-06-19T03:20:20+00:00"
+          "session_id": "bdb472db-c796-4a5d-b533-cac55602118a",
+          "first_seen": "2026-06-26T03:03:54+00:00",
+          "last_used": "2026-06-26T03:03:54+00:00"
         }
       ],
-      "time_needed_to_solve": 5444,
+      "time_needed_to_solve": 2750,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
         "output": "Looking at the tex block for claim_3_19, I'll analyze the literal wording for subtleties.\n\nThe lemma states an isomorphism between $G_{\\doit(W)}$ and $\\lp G_{\\swig(W)}\\rp^{\\sm W^o}$ via the map \"$w \\mapsto w^i$\". Let me check this carefully against possible corner cases and ambiguities.\n\nSUBTLETY:\nid: isomorphism_map_unspecified_outside_W\nexplanation: The lemma writes the isomorphism as\n\n  \"$G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i$\"\n\nbut the literal text \"$w \\mapsto w^i$\" only specifies the action of the map on $w \\in W$. The full isomorphism is between two CDMGs whose node sets do not coincide setwise:\n\n- $G_{\\doit(W)}$ has node set (presumably) $J \\cup V$ — hard intervention typically preserves nodes.\n- $\\lp G_{\\swig(W)}\\rp^{\\sm W^o}$ has node set $J \\cup (V \\setminus W) \\cup W^i$ — after splitting $W$ into $W^i, W^o$ and removing $W^o$.\n\nThe action of the bijection on $V \\setminus W$ (presumably the identity $v \\mapsto v$) and on $J$ (presumably identity) is left implicit. A reader has to supply this by convention. This is standard math shorthand, but the literal text is genuinely under-specified, and any downstream formal artifact will need to make the identity-on-the-complement explicit to define a well-formed bijection.\nEND_SUBTLETY\n\nSUBTLETY:\nid: output_node_precondition_relies_on_external_definition\nexplanation: The precondition reads\n\n  \"Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\"\n\nThe phrase \"subset of output nodes from $G$\" presupposes a defined input/output distinction within $V$ (since $W$ is restricted to a proper sub-class of $V$, not all of $V$). The literal text of this lemma does not internally specify what counts as an \"output node\" — it relies on the CDMG definition elsewhere. Two readings are possible:\n\n(a) $V$ already partitions into input nodes and output nodes; $W$ must be drawn from the output side only.\n(b) \"Output node\" is a property assigned via the labels $L$ and the restriction is about that labeling.\n\nIf the SWIG/hard-intervention operations are only well-defined for \"output\" nodes, this restriction is load-bearing; if not, the precondition is a meaningful constraint and silently violating it (passing an input node in $W$) would produce ill-defined right-hand side $W^o$. The lemma does not flag this consequence; a literal reader who has a slightly different notion of \"output node\" might miss the precondition's force.\nEND_SUBTLETY",
         "session": "9fd54e6c-cc7b-47ff-bdfc-c8a149c2924b"
       },
-      "last_refactored_at": "2026-06-19"
+      "last_refactored_at": "2026-06-26"
     },
     {
       "def_or_claim": "def",

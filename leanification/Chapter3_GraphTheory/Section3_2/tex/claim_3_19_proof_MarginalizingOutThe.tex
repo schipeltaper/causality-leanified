@@ -1,20 +1,44 @@
-% Claim proof file for row claim_3_19 -- "MarginalizingOutThe".
-% Auto-generated stub by scaffold/solve_chapter.py at row start. A manager
-% agent dedicated to writing the TeX proof fills in the proof body below.
+% Claim proof file (REFACTOR TWIN) for row claim_3_19 -- "MarginalizingOutThe".
+% This is the twin file produced during the `eqViaNodeMap_injective`
+% refactor; the existing `claim_3_19_proof_MarginalizingOutThe.tex` stays
+% untouched until cleanup at Phase 7 atomically renames this twin over it.
+%
+% Mathematically the LN-level proof is unchanged by the refactor: the
+% lemma asserts the same CDMG-isomorphism
+% $G_{\doit(W)} \cong \lp G_{\swig(W)} \rp^{\sm W^o}$ as before, with
+% the same hypothesis $W \ins V$ and the same canonical bijection
+% $\phi : J \cup V \to J \cup W^i \cup (V \sm W)$ defined by
+% $v \mapsto v$ on $J \cup (V \sm W)$ and $w \mapsto w^i$ on $W$. The
+% only addition versus the existing proof body is a new ``Injectivity
+% of the carrier bijection on the source CDMG's node set'' paragraph
+% inserted just before the closing ``Combining the four clauses
+% (a)--(d) \ldots'' sentence, which underwrites the strengthened Lean
+% predicate `refactor_eqViaNodeMap` introduced by refactor
+% `eqViaNodeMap_injective` (which adds a 5th `Set.InjOn` conjunct on
+% the source carrier $\uparrow G.J \cup \uparrow G.V$ to the original
+% four image-equality conjuncts).
+%
+% Unlike claim_3_7's twin (where the new InjOn paragraph consumes the
+% disjointness side condition $W_1 \cap W_2 = \emptyset$ to rule out
+% two would-be cross-cell collisions), this row's InjOn paragraph
+% needs no extra side condition beyond the lemma's standing hypothesis
+% $W \ins V$: the source carrier $J \cup V$ partitions into three
+% cells $\{J, V \sm W, W\}$, and pairwise disjointness of those cells
+% follows from the CDMG axiom $J \cap V = \emptyset$ (def_3_1) and
+% set algebra alone; across-cell collisions are then ruled out by the
+% tagged-copy disjoint-union construction of def_3_12 (the SWIG
+% definition), which realises $W^i$ as type-disjoint from the
+% untagged image of $J \cup (V \sm W)$ in the SWIG carrier. The new
+% paragraph lives at the LN/Lean interface and is not load-bearing
+% for the LN-level mathematics of the lemma; the rest of the proof
+% body -- statement-restatement block, structural observation on
+% directed walks through $W^o$, and the four componentwise clauses
+% (a)--(d) -- is verbatim from the existing
+% `claim_3_19_proof_MarginalizingOutThe.tex`.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
 % `main.tex` via `\subfile{...}`.
-%
-% The statement is restated above the proof so the file is self-contained
-% when rendered on its own. The proof must:
-%   - Stay close to the lecture notes' proof if one exists (always search
-%     the LN first for a `\begin{proof}` block immediately following the
-%     claim; copy / lightly edit when present).
-%   - Otherwise use the LN paradigm and cite prior claims by their `ref`.
-%   - Be self-contained enough that a mathematician can follow it without
-%     re-reading the LN.
-%   - Have no `sorry`, `omitted`, or "obvious" shortcuts.
 
 \documentclass[main]{subfiles}
 
@@ -134,7 +158,7 @@
 % --- proof ------------------------------------------------------------------
 \begin{proof}
 % Adapted from the LN's own \Claude{}-wrapped proof block at
-% lecture-notes/lecture_notes/graphs.tex:1176-1211, with three structural
+% lecture-notes/lecture_notes/graphs.tex:1176-1211, with four structural
 % edits:
 %   - the LN proof writes the isomorphism in the inverse direction
 %     ($w^i \mapsto w$); we run the forward direction
@@ -146,7 +170,31 @@
 %   - the LN's two implicit shortcuts -- ``no directed walk can pass
 %     through $W^o$'' and ``bifurcations with intermediates in $W^o$
 %     collapse'' -- are spelled out inline against the explicit edge-set
-%     of $E_{\swig(W)}$ from def_3_12, item iii.
+%     of $E_{\swig(W)}$ from def_3_12, item iii.;
+%   - a new ``fifth componentwise check'' paragraph -- injectivity of
+%     the canonical carrier bijection $\phi$ on the source CDMG's joint
+%     input-output set $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$ --
+%     is inserted at the end of the componentwise verification, just
+%     before the closing ``Combining the four clauses (a)--(d) \ldots''
+%     sentence.  The new paragraph is \emph{not} in the LN's \Claude
+%     proof (the LN identifies the carriers implicitly via the
+%     case-split definition of $\phi$ and the bijectivity-on-pieces
+%     remark in the statement block, so no source-side injectivity
+%     certificate is needed in the LN's reading); it is added here to
+%     underwrite the strengthened Lean-encoding predicate
+%     `refactor_eqViaNodeMap` introduced by refactor
+%     `eqViaNodeMap_injective` (whose 5th conjunct is exactly a
+%     `Set.InjOn` on the source carrier $\uparrow G.J \cup \uparrow
+%     G.V$).  Mathematically it is a straightforward three-cell case
+%     analysis on the source $J \cup V$ using only the standing CDMG
+%     axiom $J \cap V = \emptyset$ (def_3_1) and def_3_12's tagged-copy
+%     disjoint-union construction -- no extra side condition (such as
+%     a disjointness hypothesis between two split sets) is consumed,
+%     in contrast to claim_3_7's twin where the new InjOn paragraph
+%     consumes the disjointness side condition $W_1 \cap W_2 =
+%     \emptyset$.  The new paragraph lives at the LN/Lean interface
+%     and is not load-bearing for the LN-level mathematics of the
+%     lemma.
 We establish the four clauses (a)--(d) of CDMG-isomorphism for the bijection $\phi : J \cup V \to J \cup W^i \cup (V \sm W)$ of the statement, defined by $\phi(v) = v$ for $v \in J \cup (V \sm W)$ and $\phi(w) = w^i$ for $w \in W$ (def \ref{def:G_node-splitting_intervention}'s tagged-copy construction supplies the $W \to W^i$ bijection $w \mapsto w^i$). Clauses (a) and (b) are immediate from the case-split definition of $\phi$ and the carrier identifications already worked out in the statement; clauses (c) and (d) require unfolding the marginalization-through-$W^o$ predicates $\Phi_E$ and $\Phi_L$ of def \ref{def:G_marginalization} applied to $G_{\swig(W)}$, and crucially rely on the structural observation that no directed walk in $G_{\swig(W)}$ can pass through $W^o$ as an intermediate node. We prove that observation first, then work the four clauses in turn.
 
 \medskip\noindent\emph{Structural observation: no directed walk in $G_{\swig(W)}$ passes through $W^o$ as an intermediate node.}
@@ -296,8 +344,40 @@ It remains to show $(v_1, v_2) \in L_{\swig(W)} \Leftrightarrow (v_1, v_2) \in L
 \]
 where the third equivalence uses irreflexivity of $L$ (def \ref{def-cdmg}: $(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$) to silently drop or add the conjunct $v_1 \neq v_2$ alongside any $L_{\swig(W)}$-membership statement. \checkmark
 
+\medskip\noindent\emph{Injectivity of the carrier bijection on the source CDMG's node set.}
+The canonical bijection $\phi : J_{\doit(W)} \cup V_{\doit(W)} = J \cup V \to J \cup W^i \cup (V \sm W)$ of the statement, defined by $\phi(v) := v$ for $v \in J \cup (V \sm W)$ and $\phi(w) := w^i$ for $w \in W$, sends each element of the source CDMG's joint input-output node set to its image in the target CDMG's carrier $J_{\lp G_{\swig(W)} \rp^{\sm W^o}} \cup V_{\lp G_{\swig(W)} \rp^{\sm W^o}} = J \cup W^i \cup (V \sm W)$ via the three-branch case split spelled out in the statement block. We verify that this bijection is moreover \emph{injective} on the source side -- i.e., distinct elements of $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$ are sent to distinct elements of $J \cup W^i \cup (V \sm W)$ -- by a case analysis on the three-cell partition of the source. In contrast to claim_3_7's twin (where the analogous injectivity check for two iterated splittings consumes the disjointness side condition $W_1 \cap W_2 = \emptyset$ to rule out two would-be cross-cell collisions), this row's injectivity check needs no extra side condition beyond the lemma's standing hypothesis $W \ins V$: pairwise disjointness of the three source cells follows from def \ref{def-cdmg}'s axiom $J \cap V = \emptyset$ and set algebra alone, and across-cell collisions are then ruled out by def \ref{def:G_node-splitting_intervention}'s tagged-copy disjoint-union construction.
+
+Combining the carrier identifications $J_{\doit(W)} = J \cup W$ and $V_{\doit(W)} = V \sm W$ (items i.\ and ii.\ of def \ref{def:G_hard_intervention}, recalled at the head of the statement block), the source's joint input-output node set decomposes as the disjoint union of three cells
+\[
+    J_{\doit(W)} \cup V_{\doit(W)} \;=\; J \cup V \;=\; J \;\dcup\; (V \sm W) \;\dcup\; W,
+\]
+where:
+\begin{itemize}
+    \item cell (1) $J$ is the input-node set of $G$ (and of $G_{\doit(W)}$ minus $W$);
+    \item cell (2) $V \sm W$ is the part of $V$ not affected by the hard intervention (which becomes the output-node set $V_{\doit(W)}$);
+    \item cell (3) $W$ is the hard-intervened set of output nodes (which becomes part of the input-node set $J_{\doit(W)}$ as the $W$-summand of $J_{\doit(W)} = J \cup W$).
+\end{itemize}
+Pairwise disjointness of the three cells follows from the standing CDMG axioms alone: cells (1) and (2) are disjoint by the $J \cap V = \emptyset$ axiom of def \ref{def-cdmg} together with $V \sm W \ins V$; cells (1) and (3) are disjoint because $W \ins V$ (the lemma's side condition) and $J \cap V = \emptyset$ together force $J \cap W = \emptyset$; cells (2) and (3) are disjoint by set algebra ($(V \sm W) \cap W = \emptyset$). \emph{No disjointness side condition is consumed in this partition step} -- the only side condition of the lemma, $W \ins V$, is used only to identify $W$ as a subset of $V$ for the $J$-vs-$W$ disjointness.
+
+\emph{Within-cell injectivity.}
+On each of the three cells the bijection $\phi$ acts by a single composed-constructor chain that is injective in the underlying $j$/$v$/$w$-label:
+\begin{itemize}
+    \item ``$j \mapsto j$'' on cell (1): the identity on $J$, trivially injective.
+    \item ``$v \mapsto v$'' on cell (2): the identity on $V \sm W$, trivially injective.
+    \item ``$w \mapsto w^i$'' on cell (3): the tagged-copy injection $W \to W^i$ of def \ref{def:G_node-splitting_intervention}, item i.\ (the tagged-input copies $W^i := \lC w^i \st w \in W \rC$ are pairwise distinct as $w$ ranges over $W$, by the type-level disjoint-union construction of the SWIG carrier; in particular $w \mapsto w^i$ is a bijection $W \to W^i$ as recalled at the bijectivity-on-pieces remark of the statement block).
+\end{itemize}
+
+\emph{Across-cell injectivity.}
+It remains to show that no collision occurs between two elements drawn from two different cells of the three-cell partition. There are $\binom{3}{2} = 3$ structural cross-cell collision patterns to rule out; we walk through each.
+\begin{itemize}
+    \item \emph{Cell (1) vs.\ cell (2).} Images $\phi(j) = j \in J$ (for some $j \in J$) and $\phi(v) = v \in V \sm W \ins V$ (for some $v \in V \sm W$). An equality $j = v$ inside the codomain $J \cup W^i \cup (V \sm W)$ would force $j = v \in J \cap V = \emptyset$ by the $J \cap V = \emptyset$ axiom of def \ref{def-cdmg} -- contradiction. No collision.
+    \item \emph{Cell (1) vs.\ cell (3).} Images $\phi(j) = j \in J$ (for some $j \in J$) and $\phi(w) = w^i \in W^i$ (for some $w \in W$). By def \ref{def:G_node-splitting_intervention}'s tagged-copy construction (items i.\ and ii.\ of def \ref{def:G_node-splitting_intervention} realise the SWIG carrier $J_{\swig(W)} \cup V_{\swig(W)} = (J \dcup W^i) \cup ((V \sm W) \dcup W^o)$ as a type-level disjoint union in which $W^i$ is disjoint from the untagged image of $J \cup (V \sm W)$, with the unsplit-injection shorthand ``$v^i := v$ for $v \in J \cup (V \sm W)$'' fixing the untagged piece), the image-side pieces $J$ and $W^i$ inside the codomain $J \cup W^i \cup (V \sm W)$ are disjoint. No collision.
+    \item \emph{Cell (2) vs.\ cell (3).} Images $\phi(v) = v \in V \sm W$ (for some $v \in V \sm W$) and $\phi(w) = w^i \in W^i$ (for some $w \in W$). Same type-disjointness argument as cells (1) vs.\ (3): the untagged image $V \sm W$ and the tagged-input piece $W^i$ are disjoint inside the codomain $J \cup W^i \cup (V \sm W)$ by def \ref{def:G_node-splitting_intervention}'s tagged-copy disjoint-union construction (the SWIG carrier identifies $W^i$ as type-disjoint from every element of $V$, hence in particular from $V \sm W$). No collision.
+\end{itemize}
+All three cross-cell collision patterns have been ruled out, so the canonical carrier bijection $\phi$ is injective on $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$. \checkmark
+
 \medskip
-Combining the four clauses (a)--(d), $\phi$ is a bijection on nodes that respects the input/output partition (clauses (a) and (b)) and whose forward and inverse direction biconditionals characterise the directed-edge sets (clause (c)) and the bidirected-edge sets (clause (d)) of the two CDMGs. Hence $\phi$ is a CDMG-isomorphism (def \ref{def-cdmg}), establishing $G_{\doit(W)} \cong \lp G_{\swig(W)} \rp^{\sm W^o}$.
+Combining the four clauses (a)--(d) with the carrier-bijection injectivity check just established, $\phi$ is a bijection on nodes that respects the input/output partition (clauses (a) and (b)), whose forward and inverse direction biconditionals characterise the directed-edge sets (clause (c)) and the bidirected-edge sets (clause (d)) of the two CDMGs, and which is moreover injective on the source CDMG's joint input-output node set $J_{\doit(W)} \cup V_{\doit(W)} = J \cup V$. Hence $\phi$ is a CDMG-isomorphism (def \ref{def-cdmg}), establishing $G_{\doit(W)} \cong \lp G_{\swig(W)} \rp^{\sm W^o}$.
 \end{proof}
 
 \end{document}
