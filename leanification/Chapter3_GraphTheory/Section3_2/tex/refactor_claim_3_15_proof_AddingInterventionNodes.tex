@@ -1,0 +1,384 @@
+% Refactor-twin of `claim_3_15_proof_AddingInterventionNodes.tex` for
+% refactor `eqViaNodeMap_injective`.  The refactor strengthens the
+% predicate `eqViaNodeMap` (from claim_3_7) to `refactor_eqViaNodeMap`
+% by adding a 1st conjunct `Set.InjOn f (↑G.J ∪ ↑G.V)` on the carrier
+% map; the four image-equality conjuncts (J, V, E, L) and the
+% mathematical content of the lemma are unchanged.  This twin's only
+% additions versus the existing `cdmg_typed_edges` twin are:
+%
+%   (i) a new "Strengthened componentwise reading via the canonical
+%       flatten map $\flattenSwigDoit$" paragraph in the statement
+%       block (inserted after "Distinct carriers and the canonical
+%       relabelling identifying them" and before "The conclusion"),
+%       stating that the canonical relabelling identifying the two
+%       iterated-tagged-sum carriers must additionally be
+%       \emph{injective on the source iterated graph's $J \cup V$}
+%       (where the source is the side of the canonical flatten map
+%       carrying the InjOn obligation; in the Lean-encoding's
+%       strengthened componentwise predicate $\refactor\eqViaNodeMap$
+%       this is the predicate's first argument, also called the
+%       predicate's "LHS"); and
+%
+%   (ii) a new "Injectivity of the canonical flatten map
+%        $\flattenSwigDoit$ on the iterated LHS carrier's $J \cup V$"
+%        paragraph inserted between Step 3 (component matching) and
+%        the Conclusion.  Mathematically this paragraph is a four-cell
+%        case analysis on the source iterated graph's joint
+%        input-output node set
+%        $J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}$.
+%        Each of the six cross-cell collision patterns is ruled out
+%        by a \emph{structural constructor-mismatch} argument alone:
+%        cells (1, 2, 3, 4) carry images with four pairwise-distinct
+%        "outer constructor / inner constructor" signatures under
+%        $\flattenSwigDoit$, and each cross-cell pair is closed by
+%        invoking the appropriate freshness / tagged-copy
+%        type-disjointness clause of def \ref{def:cdmg_intervention_nodes}
+%        or def \ref{def:G_node-splitting_intervention}.
+%        \textbf{The disjointness hypothesis $W_1 \cap W_2 = \emptyset$
+%        is NOT consumed in the new InjOn paragraph.}  This contrasts
+%        with claim_3_14's $\flattenIntExt$, whose cell-(3)-vs-(4)
+%        cross-collision $I_{w_1} = I_{w_2}$ for $w_1 \in W_1 \sm J$,
+%        $w_2 \in W_2 \sm J$ forces $w_1 = w_2 \in W_1 \cap W_2$ and
+%        is the load-bearing consumer of disjointness in that twin.
+%        Here cells (3) and (4) are the two tagged copies $W_1^o$
+%        and $W_1^i$ of $W_1$ (introduced by the swig leg), and they
+%        are separated by the tagged-copy disjointness clause of
+%        def \ref{def:G_node-splitting_intervention} alone -- both
+%        cells reside on the same side ($W_1$), so no "$W_1$ vs.
+%        $W_2$" question arises.  Disjointness IS consumed elsewhere
+%        in the proof (as in the existing twin's Step 1 and Step 2
+%        directed-edge calculations), but not in the new InjOn paragraph.
+%
+% Phase-7 cleanup renames this twin file over the original.
+
+\documentclass[main]{subfiles}
+
+\providecommand{\flattenSwigDoit}{\mathrm{flattenSwigDoit}}
+
+\begin{document}
+% ref: claim_3_15 (proof, with statement restated for readability)
+% title: AddingInterventionNodes
+\def\rowref{claim\_3\_15}
+\phantomsection\label{claim_3_15}
+
+% --- statement (restated) ---------------------------------------------------
+\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]\label{adding-intervention-nodes-commutes-with-disjoint-node-splitting-hard-interventions}
+    Let $G = (J, V, E, L)$ be a CADMG (def \ref{def-cdmg-types}, item~i., equivalently a CDMG of def \ref{def-cdmg} that is acyclic in the sense of def \ref{def-acylic}); throughout we use the notation of def \ref{not-cdmg} and recall the typing and axioms of def \ref{def-cdmg}, namely $J \cap V = \emptyset$, $E \subseteq (J \cup V) \times V$, $L \subseteq V \times V / ((v_1, v_2) \sim (v_2, v_1))$ (the unordered-pair quotient, realised in the project's Lean encoding by Mathlib's $\text{Sym}_2(V)$ via the \texttt{cdmg\_typed\_edges} refactor; swap-symmetry $(v_1, v_2) \sim (v_2, v_1)$ is therefore definitional and no separate symmetry axiom is needed), and $L$ irreflexive ($(v_1, v_2) \in L \Rightarrow v_1 \neq v_2$). We rely throughout on the node-splitting hard-intervention (SWIG) construction $\swig$ of def \ref{def:G_node-splitting_intervention} and the intervention-node extension $\doit(I_{\cdot})$ of def \ref{def:cdmg_intervention_nodes}. Let
+    \[ W_1 \subseteq V \quad\text{and}\quad W_2 \subseteq J \cup V \]
+    be two subsets of nodes of $G$ (both automatically finite, since $J \cup V$ is finite by def \ref{def-cdmg}; this matches the project's Lean encoding of $W_1$ and $W_2$ as \texttt{Finset}s). The typings $W_1 \subseteq V$ (strictly tighter than the ambient $J \cup V$, since $W_1$ must lie on the output side) and $W_2 \subseteq J \cup V$ (overlap with $J$ is permitted) are dictated by the preconditions of the two constructors involved: $\swig$ acts only on output nodes (def \ref{def:G_node-splitting_intervention}, ``Let $W \subseteq V$''), while $\doit(I_{\cdot})$ admits an arbitrary subset of the carrier (def \ref{def:cdmg_intervention_nodes}, ``Let $W \subseteq J \cup V$''). The two subsets are subject to the disjointness side condition
+    \[ W_1 \cap W_2 \;=\; \emptyset. \]
+    All three quantifiers ``for every CADMG $G$'', ``for every $W_1 \subseteq V$'', and ``for every $W_2 \subseteq J \cup V$ with $W_1 \cap W_2 = \emptyset$'' are read \emph{universally}; in particular the (vacuously disjoint) corner cases $W_1 = W_2 = \emptyset$, $W_1 = \emptyset$ alone, and $W_2 = \emptyset$ alone are admitted, and so are the following two corner cases governed by the $I_j := j$ convention of def \ref{def:cdmg_intervention_nodes}:
+    \begin{itemize}
+        \item $W_2 \subseteq J$ (so $W_2 \sm J = \emptyset$): the extension $G_{\doit(I_{W_2})} = G$ is the identity by def \ref{def:cdmg_intervention_nodes} (no fresh intervention nodes and no new edges are added, since the $I_j := j$ shorthand for $j \in J \cap W_2 = W_2$ is purely notational); the displayed equality below then degenerates to $G_{\swig(W_1)} = G_{\swig(W_1)}$, which is trivially true. The $W_2 \subseteq J$ case is admitted by the statement (read literally per def \ref{def:cdmg_intervention_nodes}, not naively as ``$|W_2|$ fresh nodes added'').
+        \item $W_2 \cap J \neq \emptyset$ and $W_2 \cap V \neq \emptyset$ (the partial case): the extension $G_{\doit(I_{W_2})}$ adds fresh intervention nodes $\lC I_w \st w \in W_2 \sm J \rC$ and edges $\lC (I_w, w) \st w \in W_2 \sm J \rC$ only for the $V$-elements $W_2 \sm J = W_2 \cap V$ of $W_2$, and acts as the identity on the $J$-elements $W_2 \cap J$ (the $I_j := j$ shorthand contributes no new node and no new edge there). Sub-case admitted; the equality below holds with the $W_2 \sm J$ parametrisation visible in the directed-edge component (per def \ref{def:cdmg_intervention_nodes}, item~iii.).
+    \end{itemize}
+
+    \emph{Reading of ``CADMG'' in the LN's prose.}
+    The LN's literal text opens with ``Let $G = (J, V, E, L)$ be a CADMG'' and refers in the prose to ``the CADMG that arises from $\ldots$'' for both sides of the displayed equality. Both sides are produced by applying $\swig$ (def \ref{def:G_node-splitting_intervention}) and $\doit(I_{\cdot})$ (def \ref{def:cdmg_intervention_nodes}) in some order to $G$. The constructor of def \ref{def:G_node-splitting_intervention} requires the CADMG hypothesis on its input -- on $G$ for the LHS's inner $\swig(W_1)$, and on $G_{\doit(I_{W_2})}$ for the RHS's outer $\swig(W_1)$. Acyclicity of $G_{\doit(I_{W_2})}$ under the CADMG hypothesis on $G$ is established by \ref{claim_3_13} (\emph{AcyclicHardInterventionTopologicalOrder} in the SWIG-analog presentation of this section, more precisely the remark right after def \ref{def:cdmg_intervention_nodes} in the LN, which states that acyclicity of $G$ implies acyclicity of $G_{\doit(I_W)}$ for every $W \subseteq J \cup V$). The constructor of def \ref{def:cdmg_intervention_nodes} only requires its input to be a CDMG (not a CADMG); since both $G$ and $G_{\swig(W_1)}$ are CDMGs (the latter by the CDMG-axiom check at the end of def \ref{def:G_node-splitting_intervention}), the inner $\doit(I_{W_2})$ on either side is defined regardless of acyclicity. Hence both sides of the displayed equality are CADMGs. At the underlying CDMG-type level, the asserted equality below is first an equality of CDMGs (def \ref{def-cdmg}) -- componentwise on the four components $(J, V, E, L)$ -- and the upgrade to an equality of CADMGs is automatic once both sides are known to be acyclic CDMGs (acyclicity is a propositional condition on a fixed CDMG, transported along the CDMG-equality).
+
+    \emph{Disambiguation of the $\swig(\cdot)$ and $\doit(I_{\cdot})$ notation.}
+    The only $\swig$ in this lemma is $\swig(W_1)$ with $W_1 \subseteq V$, and the only $\doit$ in this lemma is $\doit(I_{W_2})$ with the $I$-tagged argument $I_{W_2}$ (not the bare-node-set argument $W_2$). In particular, the hard-intervention reading $G_{\doit(W)}$ of def \ref{def:G_hard_intervention} (which would consume a bare node set $W$ and produce a CDMG with $J_{\doit(W)} := J \cup W$ etc.) is \emph{not} invoked here; nor is any SWIG-of-$I$-tagged-set notation. Concretely:
+    \begin{itemize}
+        \item $G_{\swig(W_1)}$ denotes the \emph{node-splitting hard intervention} on $W_1$ (def \ref{def:G_node-splitting_intervention}, which requires $G$ to be a CADMG -- matching the standing hypothesis on $G$, and giving the SWIG construction directly via four set-builders rather than via an intermediate node-split). Its components are
+              $J_{\swig(W_1)} := J \dcup W_1^i$,
+              $V_{\swig(W_1)} := (V \sm W_1) \dcup W_1^o$,
+              $E_{\swig(W_1)} := \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC$, and
+              $L_{\swig(W_1)} := \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC$,
+              where $W_1^o := \lC w^o \st w \in W_1 \rC$ and $W_1^i := \lC w^i \st w \in W_1 \rC$ are the two type-level tagged copies of $W_1$ introduced in def \ref{def:G_node-splitting_intervention} (so $W_1^o \cap W_1^i = \emptyset$ and both $W_1^o$ and $W_1^i$ are disjoint from every element of $J \cup V$, the latter automatically by the tagged construction), and the shorthand $v^o := v^i := v$ is used for $v \in J \cup (V \sm W_1)$ inside the set-builders for $E_{\swig(W_1)}$ and $L_{\swig(W_1)}$ (def \ref{def:G_node-splitting_intervention}, items~i.--iv.). The input-side tagged copy $W_1^i$ sits in $J_{\swig(W_1)}$ and the output-side tagged copy $W_1^o$ sits in $V_{\swig(W_1)}$.
+        \item $G_{\doit(I_{W_2})}$ denotes the \emph{extended CDMG} obtained by adding intervention nodes for $W_2$ (def \ref{def:cdmg_intervention_nodes}). Its components are
+              $J_{\doit(I_{W_2})} := J \cup \lC I_w \st w \in W_2 \sm J \rC$,
+              $V_{\doit(I_{W_2})} := V$,
+              $E_{\doit(I_{W_2})} := E \cup \lC (I_w, w) \st w \in W_2 \sm J \rC$, and
+              $L_{\doit(I_{W_2})} := L$,
+              where $\lC I_w \st w \in W_2 \sm J \rC$ is the family of fresh intervention symbols introduced by def \ref{def:cdmg_intervention_nodes} (type-disjoint from $J \cup V$ and pairwise type-disjoint), and the notational shorthand $I_j := j$ for $j \in J \cap W_2$ means no new node is introduced and no new edge is added on the $J \cap W_2$ branch. The output-node set $V$ and the bidirected-edge set $L$ are untouched.
+    \end{itemize}
+
+    \emph{Well-typedness of the iterated operations on both sides.}
+    Each iterated operation appearing in the displayed equality below is well-typed per its constructor's precondition:
+    \begin{itemize}
+        \item \emph{LHS, $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$.} The inner $G_{\swig(W_1)}$ is defined per def \ref{def:G_node-splitting_intervention} from the standing $W_1 \subseteq V$ and the CADMG hypothesis on $G$. By items~i.\ and ii.\ of def \ref{def:G_node-splitting_intervention}, the carrier of $G_{\swig(W_1)}$ is
+              \[ J_{\swig(W_1)} \cup V_{\swig(W_1)} \;=\; \lp J \dcup W_1^i \rp \;\cup\; \lp (V \sm W_1) \dcup W_1^o \rp, \]
+              with the canonical inclusion (the ``unsplit'' map) $\iota_{\swig} \colon J \cup (V \sm W_1) \hookrightarrow J_{\swig(W_1)} \cup V_{\swig(W_1)}$ acting as $v \mapsto v$ -- and the elements of $W_1$ themselves are \emph{not} in the image of $\iota_{\swig}$, having been split into the tagged copies $W_1^o, W_1^i$. The disjointness $W_1 \cap W_2 = \emptyset$ together with $W_2 \subseteq J \cup V$ gives $W_2 \subseteq J \cup (V \sm W_1)$, so $\iota_{\swig}$ restricts to an inclusion $W_2 \hookrightarrow J_{\swig(W_1)} \cup V_{\swig(W_1)}$ identifying $W_2$ with its image $\iota_{\swig}[W_2]$ as the unsplit-untagged copy of $W_2$ inside the SWIG carrier. Hence the outer $\doit(I_{W_2})$ is defined per def \ref{def:cdmg_intervention_nodes} applied to $G_{\swig(W_1)}$ with the subset $\iota_{\swig}[W_2] \subseteq J_{\swig(W_1)} \cup V_{\swig(W_1)}$ (def \ref{def:cdmg_intervention_nodes} only requires its input graph to be a CDMG, and $G_{\swig(W_1)}$ is a CDMG by the axiom-check at the end of def \ref{def:G_node-splitting_intervention}). Under this identification, $\iota_{\swig}[W_2] \cap J_{\swig(W_1)} = W_2 \cap J$ (the $J$-elements of $W_2$ remain in $J$, with no node addition under the $I_j := j$ convention) and $\iota_{\swig}[W_2] \sm J_{\swig(W_1)} = W_2 \sm J \subseteq V \sm W_1$ (the $V$-elements of $W_2$ sit on the untagged $V \sm W_1$ piece, with one fresh $I_w$ added for each).
+        \item \emph{RHS, $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$.} The inner $G_{\doit(I_{W_2})}$ is defined per def \ref{def:cdmg_intervention_nodes} from the standing $W_2 \subseteq J \cup V$ on the CDMG underlying the CADMG $G$. By items~i.\ and ii.\ of def \ref{def:cdmg_intervention_nodes}, the carrier of $G_{\doit(I_{W_2})}$ is
+              \[ J_{\doit(I_{W_2})} \cup V_{\doit(I_{W_2})} \;=\; \lp J \cup \lC I_w \st w \in W_2 \sm J \rC \rp \;\cup\; V, \]
+              with the canonical inclusion (the ``unsplit'' map) $\iota_{\doit} \colon J \cup V \hookrightarrow J_{\doit(I_{W_2})} \cup V_{\doit(I_{W_2})}$ acting as $v \mapsto v$ for all $v \in J \cup V$ (every original node of $G$ embeds untagged into the extended carrier; only the fresh symbols $I_w$ for $w \in W_2 \sm J$ are new). Since $W_1 \subseteq V = V_{\doit(I_{W_2})}$, the inclusion $\iota_{\doit}$ restricts to an inclusion $W_1 \hookrightarrow V_{\doit(I_{W_2})}$ identifying $W_1$ with its image $\iota_{\doit}[W_1]$ on the output side. Hence the outer $\swig(W_1)$ is defined per def \ref{def:G_node-splitting_intervention} applied to $G_{\doit(I_{W_2})}$ with the subset $\iota_{\doit}[W_1] \subseteq V_{\doit(I_{W_2})}$. The CADMG-hypothesis precondition of def \ref{def:G_node-splitting_intervention} on $G_{\doit(I_{W_2})}$ is met because $G_{\doit(I_{W_2})}$ is acyclic whenever $G$ is, by the LN's remark immediately following def \ref{def:cdmg_intervention_nodes} (already noted under ``Reading of `CADMG' '' above).
+    \end{itemize}
+
+    \emph{Distinct carriers and the canonical relabelling identifying them.}
+    The LHS and RHS of the displayed equality live in formally distinct iterated-tagged-sum carriers:
+    \begin{itemize}
+        \item the LHS carrier is $J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \cup V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}$, obtained by first splitting $W_1 \subseteq V$ off into the tagged copies $W_1^o, W_1^i$ (def \ref{def:G_node-splitting_intervention}) and then adding fresh intervention symbols $\lC I_w \st w \in W_2 \sm J \rC$ on top (def \ref{def:cdmg_intervention_nodes}); concretely
+              \[ J \cup W_1^i \cup \lC I_w \st w \in W_2 \sm J \rC \;\cup\; (V \sm W_1) \cup W_1^o, \]
+              with all four unions automatically disjoint by the tagged-copy disjointness of $W_1^o, W_1^i$ from $J \cup V$ and from each other, and by the freshness of the intervention symbols $\lC I_w \st w \in W_2 \sm J \rC$ from $J \cup V$ and from $W_1^o, W_1^i$ (the last clause follows from the tagged construction together with $W_1 \cap W_2 = \emptyset$, which ensures no $I_w$ symbol is accidentally identified with any $w' \in W_1$);
+        \item the RHS carrier is $J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}$, obtained by first adding fresh intervention symbols $\lC I_w \st w \in W_2 \sm J \rC$ (def \ref{def:cdmg_intervention_nodes}) and then splitting $W_1 \subseteq V$ off into the tagged copies $W_1^o, W_1^i$ (def \ref{def:G_node-splitting_intervention}); concretely
+              \[ J \cup \lC I_w \st w \in W_2 \sm J \rC \cup W_1^i \;\cup\; (V \sm W_1) \cup W_1^o, \]
+              again with all four unions automatically disjoint.
+    \end{itemize}
+    The two carriers are equal as plain sets of symbols (both are the union $J \cup (V \sm W_1) \cup W_1^o \cup W_1^i \cup \lC I_w \st w \in W_2 \sm J \rC$, with the $\cup$ between any two of the five pieces automatically disjoint), and the canonical relabelling identifying them is the obvious one: the unsplit copy of every $v \in J \cup V$ maps to itself on either side; the tagged copies $w^o \in W_1^o$ and $w^i \in W_1^i$ on the LHS (introduced by ``first split'') are identified with the tagged copies $w^o \in W_1^o$ and $w^i \in W_1^i$ on the RHS (introduced by ``last split'') via the identity on $W_1$; and the fresh intervention symbols $I_w$ for $w \in W_2 \sm J$ on the LHS (introduced by ``last extend'') are identified with the fresh intervention symbols $I_w$ for $w \in W_2 \sm J$ on the RHS (introduced by ``first extend'') via the identity on $W_2 \sm J$. The asserted equality of CADMGs below is read componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg} \emph{up to this canonical relabelling}; equivalently, when each carrier is identified with the common set just displayed, the four components of the LHS and the four components of the RHS coincide as subsets of (the carrier, the carrier $\times$ carrier with appropriate input--output typing, and the output-side carrier squared).
+
+    \emph{Strengthened componentwise reading via the canonical flatten map $\flattenSwigDoit$.}
+    The two iterated-tagged-sum carriers above are formally distinct as tagged-sum carriers (the LHS uses the ``swig-outer / doit-inner'' constructor stack, the RHS uses the ``doit-outer / swig-inner'' constructor stack), and the LN identifies them set-theoretically via the canonical relabelling spelled out in the previous paragraph. To make this identification a single named map -- which sharpens the image-level componentwise reading below and pins down its direction -- we introduce the \emph{canonical flatten map}
+    \[ \flattenSwigDoit \colon J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;\longrightarrow\; J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \cup V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}, \]
+    defined explicitly piecewise in the proof body below by a four-cell rule on the source iterated carrier (doubly-unsplit unaffected nodes $\iota_{\swig}(\iota_{\doit}(v))$ map to their counterparts $\iota_{\doit}(\iota_{\swig}(v))$, the lifted fresh intervention symbols $\iota_{\swig}(I_w)$ on the source map to the fresh intervention symbols $I_w$ on the target, and the output- and input-tagged $W_1$ copies $w^o, w^i$ on the source map to the output- and input-tagged copies on the target, under the canonical-relabelling identifications recorded above). The direction of $\flattenSwigDoit$ -- from the RHS-iterated carrier (source) to the LHS-iterated carrier (target) -- is a convention inherited from the Lean encoding (where the first argument to the strengthened componentwise predicate is the side carrying the carrier-map obligation); mathematically the canonical relabelling is a bijection between the two carriers and either direction admits a flatten-map presentation. The asserted equality of CADMGs below is then read componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg} \emph{after applying $\flattenSwigDoit$ to the source carrier}, i.e., each of the four target components equals the image of the corresponding source component under $\flattenSwigDoit$ (or its product/$\mathrm{Sym}_2$ lift on the edge components). To make this image-level componentwise reading rigorous -- i.e., to prevent it from silently degenerating to a many-to-one image-collapse, which would identify formally distinct source-iterated-graph nodes via collisions in their flattened image -- we additionally require that $\flattenSwigDoit$ be \emph{injective on the source iterated graph's $J \cup V$}, i.e., distinct elements of the source carrier $J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}$ are sent to distinct elements of the target carrier. This injectivity is the substantive content of the carrier identification (without it the displayed equality would degenerate to a many-to-one image-level agreement rather than a CADMG identity), is verified explicitly in the proof body below via a four-cell case analysis, and \emph{does not consume the disjointness hypothesis $W_1 \cap W_2 = \emptyset$} -- the source iterated carrier's four cells under $\flattenSwigDoit$ produce four pairwise-distinct ``outer-constructor / inner-constructor'' signatures, and all six cross-cell collision patterns are ruled out by the freshness clause of def \ref{def:cdmg_intervention_nodes} and the tagged-copy type-disjointness clause of def \ref{def:G_node-splitting_intervention} alone (with within-cell injectivity supplied by the constructor injectivity of the same two definitions). Disjointness IS consumed elsewhere in the proof, in the directed-edge and well-typedness paragraphs that identify $W_2 \sm J \subseteq V \sm W_1$; the new InjOn paragraph is structurally independent of that consumer. (In the Lean encoding's strengthened componentwise predicate $\refactor\eqViaNodeMap$ the source of $\flattenSwigDoit$ is the predicate's first argument, occasionally referred to as ``the predicate's LHS''; the InjOn check is canonically read against that side. The title of the new InjOn paragraph below -- ``Injectivity of the canonical flatten map $\flattenSwigDoit$ on the iterated LHS carrier's $J \cup V$'' -- uses this Lean-predicate ``LHS'' = ``source of $\flattenSwigDoit$'' = LN-equation-RHS-iterated graph $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$ identification.)
+
+    \emph{The conclusion.} With the well-typedness and carrier identifications spelled out above, the following equality of CADMGs holds:
+    \[ \lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} \;=\; \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}. \]
+    Componentwise -- which is the unique unpacking the equality admits, since CDMGs are tuples $(J, V, E, L)$ of def \ref{def-cdmg} -- the equality unfolds into the four field-by-field identifications (under the canonical relabelling of the previous paragraph, equivalently under the canonical flatten map $\flattenSwigDoit$ of the strengthened componentwise reading paragraph):
+    \begin{align*}
+        J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \;&=\; J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;=\; J \;\cup\; W_1^i \;\cup\; \lC I_w \st w \in W_2 \sm J \rC, \\
+        V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \;&=\; V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;=\; (V \sm W_1) \;\cup\; W_1^o, \\
+        E_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \;&=\; E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;=\; \lC (v_1^i, v_2^o) \st (v_1, v_2) \in E \rC \;\cup\; \lC (I_w, w) \st w \in W_2 \sm J \rC, \\
+        L_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \;&=\; L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;=\; \lC (v_1^o, v_2^o) \st (v_1, v_2) \in L \rC,
+    \end{align*}
+    where on the right-hand sides the tagged shorthands $v_1^i$, $v_1^o$, $v_2^o$ for $v_1, v_2 \in J \cup V$ are read per def \ref{def:G_node-splitting_intervention}, items~i.--iv., i.e.\ $v_k^o := v_k^i := v_k$ for $v_k \in J \cup (V \sm W_1)$ (untagged) and $v_k^o \in W_1^o$, $v_k^i \in W_1^i$ are the tagged copies when $v_k \in W_1$; and where in the second set-builder of the $E$-component the symbol $w$ for $w \in W_2 \sm J$ refers to its unsplit-untagged image $\iota_{\swig}[w] = w \in V \sm W_1$ (well-defined since $w \in W_2 \sm J \subseteq V \sm W_1$ by $W_1 \cap W_2 = \emptyset$ and $W_2 \sm J \subseteq V$). The conjunctive unpacking of the displayed equality into these four field-by-field equalities is deferred to the proof, and the carrier-map injectivity check that underwrites the image-level componentwise reading (per the strengthened componentwise reading paragraph above) is verified there too.
+\end{Lem}
+
+% --- proof ------------------------------------------------------------------
+% Proof body adapted from the existing `cdmg_typed_edges` twin
+% `claim_3_15_proof_AddingInterventionNodes.tex` (which is in turn
+% adapted from the LN's \Claude{...} block at graphs.tex L887-930).
+% The three-step structure (Step 1: compute RHS; Step 2: compute LHS;
+% Step 3: match the four components) is preserved verbatim.  The
+% refactor twin only adds:
+%   (a) a new "Injectivity of the canonical flatten map
+%       $\flattenSwigDoit$ on the iterated LHS carrier's $J \cup V$"
+%       paragraph inserted between Step 3 and the Conclusion -- a
+%       four-cell case analysis on the source iterated graph's joint
+%       input-output node set, with all six cross-cell collision
+%       patterns ruled out by structural constructor-mismatch
+%       arguments alone (the disjointness hypothesis is NOT consumed
+%       in this paragraph, in contrast with claim_3_14's
+%       $\flattenIntExt$ where the cell-(3)-vs-(4) collision is the
+%       load-bearing consumer of disjointness);
+%   (b) a one-line note in the Conclusion paragraph that the upgrade
+%       from "four image-equality componentwise identifications" to
+%       "CADMG identity (not merely image-level agreement)" relies on
+%       the carrier-map injectivity verified in (a).
+\begin{proof}
+We verify the asserted equality componentwise on the four components $(J, V, E, L)$ of def \ref{def-cdmg}, comparing the LHS $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$ and the RHS $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$ field by field after a single SWIG-shorthand setup paragraph. All four well-typednesses needed below (existence of $G_{\swig(W_1)}$, of $G_{\doit(I_{W_2})}$, of the outer $\doit(I_{W_2})$ on $G_{\swig(W_1)}$, and of the outer $\swig(W_1)$ on $G_{\doit(I_{W_2})}$) are licensed by the corresponding bullets of the ``Well-typedness'' paragraph in the statement block above, which we cite without restating. After the componentwise verification we additionally verify the canonical flatten map's injectivity on the source iterated carrier's joint input-output node set, as required by the strengthened componentwise reading paragraph in the statement block.
+
+\smallskip\noindent\emph{Notational setup -- the SWIG shorthand on $W_2$.}
+Per def \ref{def:G_node-splitting_intervention}, items i.--iv., for each $w \in W_1$ the SWIG construction produces two type-disjoint tagged copies $w^o \in W_1^o$ and $w^i \in W_1^i$ (type-disjoint from $J \cup V$ and from each other), and for each $v \in J \cup (V \sm W_1)$ the shorthand
+\[ v^o \;:=\; v^i \;:=\; v \]
+records that no copy is made (the unsplit-untagged image $v \mapsto v$). The disjointness hypothesis $W_1 \cap W_2 = \emptyset$ combined with $W_2 \subseteq J \cup V$ gives $W_2 \subseteq J \cup (V \sm W_1)$, hence every $w \in W_2$ lies in $J \cup (V \sm W_1)$, so
+\[ w^o \;=\; w^i \;=\; w \qquad \text{for every } w \in W_2. \]
+In particular for every $w \in W_2 \sm J \subseteq V \sm W_1$ we have $w^o = w$ (unsplit-untagged on the output side); this identity will be consumed below in the RHS directed-edge calculation when rewriting fresh intervention edges from their SWIG-tagged shape $I_w^i \tuh w^o$ into the bare shape $I_w \tuh w$.
+
+\medskip\noindent\textbf{Step 1: computing the RHS, $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$.}
+
+\smallskip\noindent\emph{Inner operation $G_{\doit(I_{W_2})}$.}
+Applying def \ref{def:cdmg_intervention_nodes} to $G$ with the subset $W_2 \subseteq J \cup V$ (well-typedness: def \ref{def:cdmg_intervention_nodes} only requires its input to be a CDMG, which $G$ is) yields $G_{\doit(I_{W_2})} = (J', V', E', L')$ with
+\begin{align*}
+    J' &\;:=\; J \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC, & V' &\;:=\; V, \\
+    E' &\;:=\; E \;\dcup\; \lC (I_w, w) \st w \in W_2 \sm J \rC, & L' &\;:=\; L,
+\end{align*}
+where the fresh intervention symbols $\lC I_w \st w \in W_2 \sm J \rC$ are type-disjoint from $J \cup V$ and pairwise type-disjoint per def \ref{def:cdmg_intervention_nodes} (the disjoint-union symbols $\dcup$ in $J'$ and $E'$ are automatic by this freshness clause). Note that the $W_2 \sm J$ parametrisation -- not the naive $W_2$ -- is dictated by items i.\ and iii.\ of def \ref{def:cdmg_intervention_nodes}, and reflects the $I_j := j$ convention: for $j \in J \cap W_2$ no fresh symbol $I_j$ is introduced and no edge $(I_j, j) = (j, j)$ is added.
+
+\smallskip\noindent\emph{Outer operation $\swig(W_1)$ on $G_{\doit(I_{W_2})}$.}
+The CADMG-input precondition of def \ref{def:G_node-splitting_intervention} on $G_{\doit(I_{W_2})}$ is met because $G_{\doit(I_{W_2})}$ is a CDMG (by the axiom-check at the end of def \ref{def:cdmg_intervention_nodes}) and acyclicity of $G$ transports to acyclicity of $G_{\doit(I_{W_2})}$ by \ref{claim_3_13} (the LN's remark immediately following def \ref{def:cdmg_intervention_nodes}, asserting that acyclicity of $G$ implies acyclicity of $G_{\doit(I_W)}$ for every $W \subseteq J \cup V$). The splitting-subset precondition $W_1 \subseteq V'$ is met because $V' = V$ and $W_1 \subseteq V$ by hypothesis.
+
+Applying def \ref{def:G_node-splitting_intervention}, items i.--iv., to the input $G_{\doit(I_{W_2})} = (J', V', E', L')$ with splitting subset $W_1 \subseteq V'$, and using the SWIG shorthand $v^o := v^i := v$ for $v \in J' \cup (V' \sm W_1)$ (in particular $I_w^o = I_w^i = I_w$ for every fresh symbol $I_w \in \lC I_w \st w \in W_2 \sm J \rC \subseteq J'$, and $w^o = w^i = w$ for every $w \in W_2 \sm J \subseteq V \sm W_1 = V' \sm W_1$ -- the latter using $w \notin W_1$ from $W_1 \cap W_2 = \emptyset$, which is the disjointness-consuming step):
+\begin{align*}
+    J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; J' \dcup W_1^i \\
+        &\;=\; J \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC \;\dcup\; W_1^i, \\[0.5em]
+    V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; (V' \sm W_1) \dcup W_1^o
+         \;=\; (V \sm W_1) \dcup W_1^o, \\[0.5em]
+    E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E' \rC, \\
+    L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L' \rC.
+\end{align*}
+The bidirected-edge component simplifies immediately using $L' = L$:
+\[
+    L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC.
+\]
+For the directed-edge component, splitting the source $E' = E \;\dcup\; \lC (I_w, w) \st w \in W_2 \sm J \rC$ across the disjoint union under the set-builder $\lC v_1^i \tuh v_2^o \st (v_1, v_2) \in \cdot \rC$ (which preserves disjoint unions of source sets because the SWIG relabelling $(v_1, v_2) \mapsto (v_1^i, v_2^o)$ is injective on $J \cup V$ -- the only non-trivial action is the splitting of $W_1 \subseteq V$ into the tagged copies, which is itself injective by def \ref{def:G_node-splitting_intervention}), we obtain
+\[
+    E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        \;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\dcup\; \lC I_w^i \tuh w^o \st w \in W_2 \sm J \rC.
+\]
+We rewrite the second set-builder into the bare shape $I_w \tuh w$ by applying the SWIG shorthand twice:
+\begin{itemize}
+    \item $I_w^i = I_w$ because $I_w \in J' \subseteq J' \cup (V' \sm W_1)$ (the fresh symbol $I_w$ sits in the input side of the inner CDMG, hence is on the unsplit-untagged side of the SWIG shorthand);
+    \item $w^o = w$ because $w \in W_2 \sm J \subseteq V \sm W_1 = V' \sm W_1$ (here is where the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ is consumed: it gives $W_2 \sm J \subseteq V \sm W_1$).
+\end{itemize}
+Hence $\lC I_w^i \tuh w^o \st w \in W_2 \sm J \rC = \lC I_w \tuh w \st w \in W_2 \sm J \rC$, and the directed-edge component finalises as
+\[
+    E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        \;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\dcup\; \lC I_w \tuh w \st w \in W_2 \sm J \rC.
+\]
+
+Collecting the four components:
+\begin{align*}
+    J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; J \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC \;\dcup\; W_1^i, \\
+    V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; (V \sm W_1) \;\dcup\; W_1^o, \\
+    E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\dcup\; \lC I_w \tuh w \st w \in W_2 \sm J \rC, \\
+    L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC.
+\end{align*}
+
+\medskip\noindent\textbf{Step 2: computing the LHS, $\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}$.}
+
+\smallskip\noindent\emph{Inner operation $G_{\swig(W_1)}$.}
+Applying def \ref{def:G_node-splitting_intervention} to $G$ with splitting subset $W_1 \subseteq V$ (well-typedness: $G$ is a CADMG and $W_1 \subseteq V$ by hypothesis) yields $G_{\swig(W_1)} = (\hat J, \hat V, \hat E, \hat L)$ with
+\begin{align*}
+    \hat J &\;:=\; J \dcup W_1^i, & \hat V &\;:=\; (V \sm W_1) \dcup W_1^o, \\
+    \hat E &\;:=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC, & \hat L &\;:=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC,
+\end{align*}
+where the tagged copies $W_1^o, W_1^i$ are type-disjoint from $J \cup V$ and from each other (def \ref{def:G_node-splitting_intervention}).
+
+\smallskip\noindent\emph{A carrier-set identity: $W_2 \sm \hat J = W_2 \sm J$.}
+The outer operation $\doit(I_{W_2})$ refers to the input CDMG $G_{\swig(W_1)}$ through its $J$-component $\hat J$ in the form $W_2 \sm \hat J$ (the index set of the fresh intervention symbols and fresh edges, per items i.\ and iii.\ of def \ref{def:cdmg_intervention_nodes}). Computing,
+\[
+    W_2 \cap \hat J \;=\; W_2 \cap \lp J \dcup W_1^i \rp \;=\; (W_2 \cap J) \;\cup\; (W_2 \cap W_1^i).
+\]
+By the type-disjointness clause of def \ref{def:G_node-splitting_intervention} (the tagged copy $W_1^i$ is type-disjoint from $J \cup V$) and $W_2 \subseteq J \cup V$, the second intersection is empty: $W_2 \cap W_1^i = \emptyset$. Hence $W_2 \cap \hat J = W_2 \cap J$, and therefore
+\[ W_2 \sm \hat J \;=\; W_2 \sm J. \]
+(Note that this carrier identity does \emph{not} consume the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ -- the type-disjointness of $W_1^i$ from $J \cup V$ suffices on its own. The disjointness hypothesis enters the LHS calculation elsewhere, namely in identifying the head of each fresh edge $I_w \tuh w$ with the unsplit-untagged copy of $w$ inside $\hat V$; see the directed-edge step below.)
+
+\smallskip\noindent\emph{Outer operation $\doit(I_{W_2})$ on $G_{\swig(W_1)}$.}
+Def \ref{def:cdmg_intervention_nodes} requires its input to be a CDMG (which $G_{\swig(W_1)}$ is, by the axiom-check at the end of def \ref{def:G_node-splitting_intervention}) and its splitting subset to lie in $\hat J \cup \hat V$. The latter is supplied by the unsplit inclusion $\iota_{\swig} \colon J \cup (V \sm W_1) \hookrightarrow \hat J \cup \hat V$ from the statement block, which under $W_1 \cap W_2 = \emptyset$ identifies $W_2 \subseteq J \cup (V \sm W_1)$ with its untagged image inside $\hat J \cup \hat V$.
+
+Applying def \ref{def:cdmg_intervention_nodes}, items i.--iv., to the input $G_{\swig(W_1)} = (\hat J, \hat V, \hat E, \hat L)$ with subset $W_2$, and using the carrier identity $W_2 \sm \hat J = W_2 \sm J$ established above to rewrite the index set:
+\begin{align*}
+    J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+        &\;=\; \hat J \;\dcup\; \lC I_w \st w \in W_2 \sm \hat J \rC
+         \;=\; \hat J \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC \\
+        &\;=\; J \;\dcup\; W_1^i \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC, \\[0.5em]
+    V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+        &\;=\; \hat V
+         \;=\; (V \sm W_1) \dcup W_1^o, \\[0.5em]
+    E_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+        &\;=\; \hat E \;\dcup\; \lC (I_w, w) \st w \in W_2 \sm \hat J \rC
+         \;=\; \hat E \;\dcup\; \lC (I_w, w) \st w \in W_2 \sm J \rC \\
+        &\;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\dcup\; \lC I_w \tuh w \st w \in W_2 \sm J \rC, \\[0.5em]
+    L_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+        &\;=\; \hat L
+         \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC,
+\end{align*}
+where in the directed-edge component the head $w$ of each fresh intervention edge $I_w \tuh w$ (for $w \in W_2 \sm J$) is read as the unsplit-untagged image of $w$ inside $\hat V = (V \sm W_1) \dcup W_1^o$. This image is well-defined precisely because $w \in W_2 \sm J \subseteq V \sm W_1 \subseteq \hat V$, where the inclusion $W_2 \sm J \subseteq V \sm W_1$ is the disjointness-consuming step (it uses $W_1 \cap W_2 = \emptyset$). The bidirected-edge component is unchanged by $\doit(I_{W_2})$ per item iv.\ of def \ref{def:cdmg_intervention_nodes}.
+
+\medskip\noindent\textbf{Step 3: matching the four components.}
+
+Comparing the four components produced by Step 1 (RHS) and Step 2 (LHS) line by line:
+\begin{itemize}
+    \item \emph{Input nodes.}
+          \[
+              J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+                  \;=\; J \;\dcup\; W_1^i \;\dcup\; \lC I_w \st w \in W_2 \sm J \rC
+                  \;=\; J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}},
+          \]
+          the only difference between the two expressions being the order of the three pieces in the disjoint union; since $\dcup$ is commutative and associative as a set operation, the two are equal as sets (and as $\dcup$-tuples, since the pairwise disjointness is the same on both sides -- by the freshness clause of def \ref{def:cdmg_intervention_nodes} and the tagged-copy disjointness of $W_1^i$ from $J \cup V$, as already noted in the statement block's carrier paragraph). \checkmark
+    \item \emph{Output nodes.}
+          \[
+              V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+                  \;=\; (V \sm W_1) \dcup W_1^o
+                  \;=\; V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}.
+          \]
+          (Identical expressions on both sides; no consumption of disjointness, no use of $W_2 \sm J$.) \checkmark
+    \item \emph{Directed edges.}
+          \[
+              E_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+                  \;=\; \lC v_1^i \tuh v_2^o \st v_1 \tuh v_2 \in E \rC \;\dcup\; \lC I_w \tuh w \st w \in W_2 \sm J \rC
+                  \;=\; E_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}.
+          \]
+          The first set-builder is identical on both sides (the SWIG-image of $E$); the second set-builder is identical on both sides (the fresh intervention edges, parametrised over $W_2 \sm J$). The two were reached by genuinely different routes -- on the LHS the fresh edges arrived via the outer $\doit(I_{W_2})$ acting on $\hat E$ and inheriting them in the bare shape $I_w \tuh w$, on the RHS they entered the inner $G_{\doit(I_{W_2})}$'s edge set $E'$ first and were then SWIG-relabelled $I_w^i \tuh w^o = I_w \tuh w$ via the shorthand identities of Step 1. The disjointness hypothesis $W_1 \cap W_2 = \emptyset$ is consumed on both routes (LHS: to identify the head $w$ inside $\hat V$; RHS: to obtain $w^o = w$). \checkmark
+    \item \emph{Bidirected edges.}
+          \[
+              L_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}}
+                  \;=\; \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC
+                  \;=\; L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}.
+          \]
+          (Identical expressions on both sides; no consumption of disjointness, no use of $W_2 \sm J$. On the LHS, $L_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} = \hat L = \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$ because $\doit(I_{W_2})$ leaves the bidirected-edge component fixed -- item iv.\ of def \ref{def:cdmg_intervention_nodes}; on the RHS, $L_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} = \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L' \rC = \lC v_1^o \huh v_2^o \st v_1 \huh v_2 \in L \rC$ since $L' = L$.) \checkmark
+\end{itemize}
+
+\medskip\noindent\textbf{Injectivity of the canonical flatten map $\flattenSwigDoit$ on the iterated LHS carrier's $J \cup V$.}
+
+The four componentwise identifications above identify the $J$, $V$, $E$, $L$ components of the two iterated CDMGs as subsets of a common five-piece carrier $J \cup (V \sm W_1) \cup W_1^o \cup W_1^i \cup \lC I_w \st w \in W_2 \sm J \rC$. To upgrade this image-level componentwise reading to the strengthened reading recorded in the statement block (a CADMG identity, not merely image-level agreement), we now verify the carrier-map injectivity of the canonical flatten map $\flattenSwigDoit$ on the source iterated graph's joint input-output node set. We use the term ``iterated LHS carrier'' (per the title above) for this set: it is the source carrier of $\flattenSwigDoit$ and is the predicate's first-argument carrier in the Lean encoding's strengthened componentwise predicate (the convention is that the first argument of $\refactor\eqViaNodeMap$ is image-mapped through the carrier map, and is therefore called the predicate's ``LHS''); under the LN-equation labeling of the statement block above, this is the LN's right-hand-side iterated graph $\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}$, whose four components are computed in Step 1.
+
+\smallskip\noindent\emph{Piecewise definition of $\flattenSwigDoit$ on the iterated LHS carrier.}
+The canonical flatten map
+\[ \flattenSwigDoit \colon J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \;\longrightarrow\; J_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \cup V_{\lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})}} \]
+sends every iterated-LHS-graph node to its iterated-RHS-graph counterpart, via the four-cell piecewise rule
+\begin{itemize}
+    \item $\flattenSwigDoit(\iota_{\swig}(\iota_{\doit}(j))) \;:=\; \iota_{\doit}(\iota_{\swig}(j))$ for $j \in J$;
+    \item $\flattenSwigDoit(\iota_{\swig}(\iota_{\doit}(v))) \;:=\; \iota_{\doit}(\iota_{\swig}(v))$ for $v \in V \sm W_1$;
+    \item $\flattenSwigDoit(\iota_{\swig}(I_w)) \;:=\; I_w$ for $w \in W_2 \sm J$;
+    \item $\flattenSwigDoit(w^o) \;:=\; \iota_{\doit}(w^o) \;=\; w^o$ for $w \in W_1$;
+    \item $\flattenSwigDoit(w^i) \;:=\; \iota_{\doit}(w^i) \;=\; w^i$ for $w \in W_1$,
+\end{itemize}
+where: $\iota_{\doit}$ and $\iota_{\swig}$ are the unsplit-injections of def \ref{def:cdmg_intervention_nodes} and def \ref{def:G_node-splitting_intervention} respectively (each carries its argument's pre-operation carrier into the post-operation carrier, $v \mapsto v$); $\iota_{\swig}(I_w)$ on the source side is the inner extension's fresh symbol $I_w$ (introduced by the inner $\doit(I_{W_2})$) carried up to the source iterated carrier by the outer $\iota_{\swig}$ (the outer $\swig(W_1)$ acts as the identity on $I_w$ since $I_w \notin W_1$ by the freshness clause of def \ref{def:cdmg_intervention_nodes} -- the fresh symbol is type-disjoint from $J \cup V \supseteq W_1$); and the second-side images of the four cells are read in the target carrier per the canonical relabelling paragraph of the statement block (in particular, $\iota_{\doit}(w^o) = w^o$ and $\iota_{\doit}(w^i) = w^i$ because $W_1^o, W_1^i$ are type-disjoint from $J \cup V$ by def \ref{def:G_node-splitting_intervention} and a fortiori from the freshness sandbox of $\iota_{\doit}$, so the outer $\iota_{\doit}$ acts as the identity on them).
+
+\smallskip\noindent\emph{Four-cell decomposition of the iterated LHS carrier.}
+Combining the input-node and output-node identities verified in Step 1 (collected at the end of Step 1) with item i.\ of def \ref{def:cdmg_intervention_nodes}'s shape for the inner extension's $J'$ and item ii.\ of def \ref{def:G_node-splitting_intervention}'s shape for the outer SWIG, the iterated LHS carrier decomposes as the disjoint union of four cells:
+\begin{align*}
+    J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}
+        &\;=\; \underbrace{\iota_{\swig}\lp\iota_{\doit}(J \cup (V \sm W_1))\rp}_{\text{cell (1)}} \\
+        &\quad\dcup\; \underbrace{\iota_{\swig}\lp\lC I_w \st w \in W_2 \sm J \rC\rp}_{\text{cell (2)}} \\
+        &\quad\dcup\; \underbrace{W_1^o}_{\text{cell (3)}} \\
+        &\quad\dcup\; \underbrace{W_1^i}_{\text{cell (4)}},
+\end{align*}
+where:
+\begin{itemize}
+    \item cell (1) $\iota_{\swig}(\iota_{\doit}(J \cup (V \sm W_1)))$ is the doubly-unsplit copy of $J \cup (V \sm W_1)$ -- the original nodes of $G$ untouched by either operation. Within this cell, the $J$-part and the $V \sm W_1$-part are mutually disjoint by the $J \cap V = \emptyset$ axiom of def \ref{def-cdmg} (combined with the injectivity of $\iota_{\swig} \circ \iota_{\doit}$);
+    \item cell (2) $\iota_{\swig}(\lC I_w \st w \in W_2 \sm J \rC)$ is the inner extension's fresh symbols $I_w$ (introduced by the inner $\doit(I_{W_2})$ in $J' \subseteq J' \cup V'$) carried up to the source iterated carrier by the outer $\iota_{\swig}$ (which restricts to the identity on each $I_w$ because $I_w$ is type-disjoint from $J \cup V \supseteq W_1$ by def \ref{def:cdmg_intervention_nodes}'s freshness clause, hence is not in the splitting subset $W_1$ and is left untagged by the outer $\swig$);
+    \item cell (3) $W_1^o$ is the outer SWIG's output-tagged copies, introduced by the outer $\swig(W_1)$ on $V'$ per item ii.\ of def \ref{def:G_node-splitting_intervention};
+    \item cell (4) $W_1^i$ is the outer SWIG's input-tagged copies, introduced by the outer $\swig(W_1)$ on the input side per item i.\ of def \ref{def:G_node-splitting_intervention}.
+\end{itemize}
+
+\smallskip\noindent\emph{Pairwise disjointness of the four cells inside the iterated LHS $J \cup V$.}
+The four cells are pairwise disjoint by the type-disjointness clauses of the two operations:
+\begin{itemize}
+    \item Cells (1) vs (2) are disjoint by def \ref{def:cdmg_intervention_nodes}'s freshness clause: the fresh symbols $\lC I_w \st w \in W_2 \sm J \rC$ are type-disjoint from $J \cup V$, hence the doubly-unsplit copies of $J \cup (V \sm W_1)$ (which inject into $J \cup V$ via the canonical identifications) are disjoint from them. The outer $\iota_{\swig}$ preserves this type-disjointness because both sides of the comparison are not in $W_1$ (the doubly-unsplit copies of $J \cup (V \sm W_1)$ are by construction outside $W_1$, and the inner-fresh symbols are type-disjoint from $W_1$ as just noted), so the outer $\iota_{\swig}$ acts as the identity on both sides.
+    \item Cells (1) vs (3) are disjoint by def \ref{def:G_node-splitting_intervention}'s tagged-copy disjointness clause: $W_1^o$ is type-disjoint from $J \cup V$, hence from $\iota_{\swig}(\iota_{\doit}(J \cup (V \sm W_1))) \subseteq \iota_{\swig}(\iota_{\doit}(J \cup V))$ (the doubly-unsplit copies inject into the unsplit-untagged side of the SWIG carrier, which is disjoint from $W_1^o$ by def \ref{def:G_node-splitting_intervention}).
+    \item Cells (1) vs (4) are disjoint by the same argument with $W_1^i$ in place of $W_1^o$.
+    \item Cells (2) vs (3) are disjoint: cell (2) is the inner-fresh symbols $\iota_{\swig}(I_w)$ -- carried by the outer $\iota_{\swig}$ on its unsplit-untagged side (since $I_w \notin W_1$ as just noted) -- whereas cell (3) is the outer $\swig(W_1)$'s output-tagged copies $W_1^o$. The two land on disjoint sides of the outer SWIG construction's tagged sum (def \ref{def:G_node-splitting_intervention}, items i.--ii.: the unsplit-untagged image and the $W_1^o$ tagged copies are constructed as disjoint type-level pieces).
+    \item Cells (2) vs (4) are disjoint by the same argument with $W_1^i$ in place of $W_1^o$.
+    \item Cells (3) vs (4) are disjoint by def \ref{def:G_node-splitting_intervention}'s tagged-copy disjointness clause: $W_1^o$ and $W_1^i$ are type-disjoint from each other (as two separately-tagged copies of $W_1$).
+\end{itemize}
+None of these six pairwise-disjointness arguments consumes the disjointness hypothesis $W_1 \cap W_2 = \emptyset$.
+
+\smallskip\noindent\emph{Within-cell injectivity.}
+On each of the four cells the map $\flattenSwigDoit$ acts by a single composed-constructor chain that is injective in the underlying $j$/$v$/$w$-label:
+\begin{itemize}
+    \item ``$\iota_{\swig}(\iota_{\doit}(v)) \mapsto \iota_{\doit}(\iota_{\swig}(v))$'' on cell (1): injective in $v$ because both $\iota_{\doit}$ and $\iota_{\swig}$ are identity-on-set inclusions of $J \cup V$ into their respective extended carriers (def \ref{def:cdmg_intervention_nodes} item i. and def \ref{def:G_node-splitting_intervention} items i.--ii.), so the composition is the identity on $J \cup (V \sm W_1)$.
+    \item ``$\iota_{\swig}(I_w) \mapsto I_w$'' on cell (2): injective in $w$ because the fresh symbols $\lC I_w \st w \in W_2 \sm J \rC$ are pairwise distinct (def \ref{def:cdmg_intervention_nodes}'s freshness clause: distinct $w$'s produce distinct $I_w$'s), and $\iota_{\swig}$ is injective on its source.
+    \item ``$w^o \mapsto w^o$'' on cell (3): injective in $w$ because $W_1^o$ is in bijection with $W_1$ via the tagged construction (def \ref{def:G_node-splitting_intervention}, item ii.), and the target's $W_1^o$ on the iterated-RHS carrier is the same tagged copy with $\iota_{\doit}$ acting as the identity on it (since $W_1^o$ is type-disjoint from $J \cup V$).
+    \item ``$w^i \mapsto w^i$'' on cell (4): same argument with $W_1^i$ in place of $W_1^o$.
+\end{itemize}
+
+\smallskip\noindent\emph{Across-cell injectivity.}
+It remains to show that no collision occurs between two elements drawn from two different cells of the four-cell partition. There are $\binom{4}{2} = 6$ structural cross-cell collision patterns to rule out. The key observation is that the four cells produce \emph{four pairwise-distinct ``outer-constructor / inner-constructor'' signatures} on the target carrier under $\flattenSwigDoit$:
+\begin{itemize}
+    \item cell (1)'s image $\iota_{\doit}(\iota_{\swig}(v))$ has \emph{outer} constructor $\iota_{\doit}$ (the doit-extension's unsplit-injection on the outer layer) and \emph{inner} constructor $\iota_{\swig}$ on the original carrier (the SWIG's unsplit-untagged inner copy);
+    \item cell (2)'s image $I_w$ has \emph{outer} constructor ``fresh intervention symbol of the outer $\doit(I_{W_2})$'' (type-disjoint from $\iota_{\doit}$ by def \ref{def:cdmg_intervention_nodes}'s freshness clause);
+    \item cell (3)'s image $\iota_{\doit}(w^o)$ has \emph{outer} constructor $\iota_{\doit}$ and \emph{inner} constructor ``$W_1^o$ output-tagged copy'' (type-disjoint from the SWIG's unsplit-untagged copy and from $W_1^i$ by def \ref{def:G_node-splitting_intervention});
+    \item cell (4)'s image $\iota_{\doit}(w^i)$ has \emph{outer} constructor $\iota_{\doit}$ and \emph{inner} constructor ``$W_1^i$ input-tagged copy''.
+\end{itemize}
+We walk through each of the six cross-cell pairs.
+\begin{itemize}
+    \item \emph{Cell (1) vs cell (2): $\iota_{\doit}(\iota_{\swig}(v))$ vs $I_{w}$ for some $v \in J \cup (V \sm W_1)$ and $w \in W_2 \sm J$.} The two images differ by the outer constructor: cell (1)'s image lies in the $\iota_{\doit}$-image of the original SWIG carrier, while cell (2)'s image $I_w$ is a fresh intervention symbol introduced by the outer $\doit(I_{W_2})$. By def \ref{def:cdmg_intervention_nodes}'s freshness clause, the fresh symbols $\lC I_w \st w \in (W_2 \sm J) \rC$ are type-disjoint from the original SWIG carrier $\hat J \cup \hat V \supseteq \iota_{\doit}(\iota_{\swig}(J \cup (V \sm W_1)))$, so no collision is possible. No use of $W_1 \cap W_2 = \emptyset$.
+    \item \emph{Cell (1) vs cell (3): $\iota_{\doit}(\iota_{\swig}(v))$ vs $\iota_{\doit}(w^o) = w^o$ for some $v \in J \cup (V \sm W_1)$ and $w \in W_1$.} Both images share the outer $\iota_{\doit}$ (the outer $\doit(I_{W_2})$'s unsplit-injection on its input carrier), so we can strip it via injectivity of $\iota_{\doit}$ (it is the identity on $\hat J \cup \hat V$ per def \ref{def:cdmg_intervention_nodes}). It remains to rule out $\iota_{\swig}(v) = w^o$ inside the inner SWIG carrier $\hat J \cup \hat V$. But $\iota_{\swig}(v)$ is in the unsplit-untagged copy of $J \cup (V \sm W_1)$, while $w^o \in W_1^o$, and these two are type-disjoint by def \ref{def:G_node-splitting_intervention}'s tagged-copy disjointness clause. No use of $W_1 \cap W_2 = \emptyset$.
+    \item \emph{Cell (1) vs cell (4): $\iota_{\doit}(\iota_{\swig}(v))$ vs $\iota_{\doit}(w^i) = w^i$ for some $v \in J \cup (V \sm W_1)$ and $w \in W_1$.} Same argument as cells (1) vs (3) with $W_1^i$ in place of $W_1^o$. No use of $W_1 \cap W_2 = \emptyset$.
+    \item \emph{Cell (2) vs cell (3): $I_w$ vs $\iota_{\doit}(w^o) = w^o$ for some $w \in W_2 \sm J$ and $w' \in W_1$ (renaming to avoid clash).} The two images differ by the outer constructor: cell (2)'s image is the outer fresh symbol $I_w$, while cell (3)'s image is the outer $\iota_{\doit}$ of a $W_1^o$ tagged copy. By def \ref{def:cdmg_intervention_nodes}'s freshness clause, $I_w$ is type-disjoint from $\iota_{\doit}$'s image (which is the original SWIG carrier $\hat J \cup \hat V$), and in particular from $\iota_{\doit}(W_1^o) \subseteq \iota_{\doit}(\hat V) \subseteq \iota_{\doit}(\hat J \cup \hat V)$. No collision; no use of $W_1 \cap W_2 = \emptyset$.
+    \item \emph{Cell (2) vs cell (4): $I_w$ vs $\iota_{\doit}(w^i) = w^i$ for some $w \in W_2 \sm J$ and $w' \in W_1$.} Same argument as cells (2) vs (3) with $W_1^i$ in place of $W_1^o$. No use of $W_1 \cap W_2 = \emptyset$.
+    \item \emph{Cell (3) vs cell (4): $\iota_{\doit}(w_3^o) = w_3^o$ vs $\iota_{\doit}(w_4^i) = w_4^i$ for some $w_3, w_4 \in W_1$.} Both images share the outer $\iota_{\doit}$, so we strip it as in the (1)-vs-(3) case and reduce to $w_3^o = w_4^i$ inside the inner SWIG carrier. By def \ref{def:G_node-splitting_intervention}'s tagged-copy disjointness clause, $W_1^o$ and $W_1^i$ are type-disjoint, so no collision is possible. No use of $W_1 \cap W_2 = \emptyset$.
+\end{itemize}
+All six cross-cell collision patterns have been ruled out without invoking $W_1 \cap W_2 = \emptyset$. \emph{This contrasts with claim_3_14's \flattenIntExt} (the analog of $\flattenSwigDoit$ for the doit-doit commutation lemma), where the cell-(3)-vs-(4) collision $I_{w_1} = I_{w_2}$ for $w_1 \in W_1 \sm J$ and $w_2 \in W_2 \sm J$ forces $w_1 = w_2 \in W_1 \cap W_2$ and is the load-bearing consumer of disjointness in that twin's InjOn paragraph. The difference is structural: in claim_3_14 both inner-extension and outer-extension produce \emph{the same type of fresh symbol} ($I_w$ for $w \in W_i \sm J$, $i = 1, 2$), so distinguishing the two extension layers requires extra information ($W_1$ vs $W_2$ indexing), which the disjointness hypothesis provides. Here in claim_3_15 the two operations are structurally different (one produces tagged SWIG copies $W_1^o, W_1^i$, the other produces fresh intervention symbols $I_w$), and the corresponding cells of the source iterated carrier are distinguished by their \emph{outer-constructor / inner-constructor signatures} alone -- the freshness clause of def \ref{def:cdmg_intervention_nodes} and the tagged-copy disjointness clause of def \ref{def:G_node-splitting_intervention} together rule out all six cross-cell collisions structurally. Hence the canonical flatten map $\flattenSwigDoit$ is injective on $J_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}} \cup V_{\lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}}$. \checkmark
+
+(Note: the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ \emph{is} consumed elsewhere in the proof above -- in the Step 1 directed-edge SWIG-shorthand identity $w^o = w$ for $w \in W_2 \sm J$, in the Step 2 directed-edge identification of the head $w$ inside $\hat V$, and in the Step 3 directed-edge component's bookkeeping -- but it is structurally independent of the new InjOn paragraph just verified. The strengthened componentwise reading's load on the disjointness hypothesis is unchanged from the pre-refactor four-componentwise version's load: the InjOn upgrade is ``free'' in this sense.)
+
+\smallskip\noindent\emph{Conclusion.}
+By the four componentwise equalities just established and the carrier-map injectivity of $\flattenSwigDoit$ verified above (which together identify the LHS and RHS carriers via the canonical relabelling spelled out in the statement block), the LHS and RHS coincide field by field on each of $(J, V, E, L)$ -- with the four image-equality identities understood modulo the canonical flatten map $\flattenSwigDoit$, which is in turn injective on the source iterated graph's joint input-output set -- and are therefore equal as CDMGs (def \ref{def-cdmg}) in the strengthened componentwise-up-to-carrier-bijection reading recorded in the statement block. The upgrade from this CDMG-equality to the asserted equality of CADMGs is automatic: both LHS and RHS are CADMGs (their acyclicity is established by the well-typedness paragraph in the statement block -- in particular, the RHS's inner $G_{\doit(I_{W_2})}$ is acyclic by \ref{claim_3_13}, and both outer operations preserve acyclicity by def \ref{def:G_node-splitting_intervention} and \ref{claim_3_13} respectively), so the CDMG-equality transports the acyclicity propositionally, yielding
+\[
+    \lp G_{\swig(W_1)} \rp_{\doit(I_{W_2})} \;=\; \lp G_{\doit(I_{W_2})} \rp_{\swig(W_1)}
+\]
+as an equality of CADMGs. \qed
+\end{proof}
+
+\end{document}

@@ -623,10 +623,10 @@
       "section": "3.2",
       "title": "AddingInterventionNodes",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-26",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `eqViaNodeMap_injective`; it was pulled in because root(s) `claim_3_7` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
@@ -636,17 +636,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
+        "verify_tex_proof": 1,
         "review_design": 0,
         "verify_equivalence": 0,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -659,11 +659,82 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Adding intervention nodes commutes with disjoint node-splitting hard interventions]\n  Let $G=(J,V,E,L)$ be a CADMG and $W_1 \\ins V$ and $W_2 \\ins J \\cup V$ two disjoint subsets of nodes from $G$.\n    Then the CADMG that arises from first introducing intervention nodes $I_{W_2}$ and then splitting the nodes from $W_1$ is the same as the CADMG that arises from first splitting the nodes from $W_1$ and then introducing the intervention nodes $I_{W_2}$:\n    \\[  \\lp G_{\\swig(W_1)} \\rp_{\\doit(I_{W_2})} = \\lp G_{\\doit(I_{W_2})} \\rp_{\\swig(W_1)}. \\]\n  %  So there is no ambiguity in the notation:\n  %  \\[ G(V\\sm W_1 \\dcup W_1^o|\\doit(W_1^i \\dcup J \\dcup I_{W_2})).  \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c41f5c1d-92cd-4ded-bf2a-4d0fc55e77aa",
+          "first_seen": "2026-06-26T01:21:51+00:00",
+          "last_used": "2026-06-26T01:21:51+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "37e7b4c2-47e6-4243-8b4c-10a34fcff3e0",
+          "first_seen": "2026-06-26T01:40:32+00:00",
+          "last_used": "2026-06-26T01:40:32+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "c765c582-0f3d-4b3d-9a4d-9436b12237d0",
+          "first_seen": "2026-06-26T01:41:25+00:00",
+          "last_used": "2026-06-26T01:41:25+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "f57331a4-164a-4dd3-9f76-846542e2dffb",
+          "first_seen": "2026-06-26T01:42:11+00:00",
+          "last_used": "2026-06-26T01:42:11+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "5af1e337-d231-4e6d-bb49-f336a2e6f604",
+          "first_seen": "2026-06-26T01:43:01+00:00",
+          "last_used": "2026-06-26T01:43:01+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "00a5a18f-d2e1-43e2-9ffd-c0aac8368a88",
+          "first_seen": "2026-06-26T01:46:53+00:00",
+          "last_used": "2026-06-26T01:46:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "01d79a87-945d-4aba-800f-bb6b5f1821a5",
+          "first_seen": "2026-06-26T01:47:45+00:00",
+          "last_used": "2026-06-26T01:47:45+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "169f2d7e-cd67-48ad-8301-479caf82c7a5",
+          "first_seen": "2026-06-26T02:02:58+00:00",
+          "last_used": "2026-06-26T02:02:58+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4bf3e5b2-8ce5-43db-aaf1-057f8a28cab6",
+          "first_seen": "2026-06-26T02:04:09+00:00",
+          "last_used": "2026-06-26T02:04:09+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "cf17dbcc-f4f7-418c-89cc-1a4789f56699",
+          "first_seen": "2026-06-26T02:07:35+00:00",
+          "last_used": "2026-06-26T02:07:35+00:00"
+        }
+      ],
+      "time_needed_to_solve": 3395,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,
