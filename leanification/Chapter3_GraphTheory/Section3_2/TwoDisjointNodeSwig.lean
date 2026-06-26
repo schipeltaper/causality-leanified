@@ -192,55 +192,302 @@ private lemma image_unsplit_subset_nodeSplittingHard_V
   refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
   exact Finset.mem_sdiff.mpr ⟨hW₂ hvW₂, Finset.disjoint_right.mp hDisj hvW₂⟩
 
+
+-- ## Helper: `flattenSplit` is `InjOn` on the iterated SWIG's J ∪ V
+--
+-- Net-new helper introduced by refactor `eqViaNodeMap_injective`
+-- to discharge the strengthened predicate's `Set.InjOn` conjunct
+-- for the SWIG iterated graph (sibling of
+-- `flattenSplit_injOnHard_of_disjoint` in
+-- `TwoDisjointNode.lean`, which handles the regular node-splitting
+-- iterated graph for `claim_3_7`).
+--
+-- ### Role
+--
+-- Establishes `Set.InjOn flattenSplit` on the carrier set of the
+-- iterated SWIG CDMG
+-- `(G_{swig(W₁)})_{swig(W₂)}`, under the disjointness hypothesis
+-- `Disjoint W₁ W₂`.  Every existing image-equality conjunct of
+-- the original `twoDisjointNodeSplittingHardCommute` ports verbatim
+-- under the new predicate; only the new InjOn conjunct requires
+-- a substantively new proof, and the whole of that work is
+-- concentrated here.
+--
+-- ### Why a separate lemma (rather than inlined in the main theorem)?
+--
+-- Reused twice in `twoDisjointNodeSplittingHardCommute`
+-- -- once for direction (a)
+-- `(G_{swig W₁})_{swig W₂} = G_{swig(W₁ ∪ W₂)}`, once for direction
+-- (b) `(G_{swig W₂})_{swig W₁} = G_{swig(W₁ ∪ W₂)}` via the
+-- `(W₁ ↔ W₂)` swap of the helper's arguments.  Geometrically the
+-- argument is a five-cell partition of the iterated SWIG's node
+-- set (`J ∪ (V \ W₁ \ W₂)` plus the four tagged copies
+-- `W₁^{i_1}, W₁^{o_1}, W₂^{i_2}, W₂^{o_2}`) followed by a
+-- 5 × 5 = 25 case analysis, mirroring the verified tex twin's
+-- "Injectivity of the carrier bijection on the iterated SWIG's
+-- node set" paragraph one-to-one.
+--
+-- ### SWIG-specific shape vs. claim_3_7's regular-splitting variant
+--
+-- Two structural differences from
+-- `flattenSplit_injOnHard_of_disjoint`:
+--
+--   * **Cell layout across J/V.** Under `def_3_12` (SWIG, items
+--     i. and ii.), the input-side tagged copies `W_k^{i_k}` sit
+--     in `J_{swig(W_k)}` (constructor `.copy1`) while the
+--     output-side copies `W_k^{o_k}` sit in `V_{swig(W_k)}`
+--     (constructor `.copy0`).  Under `def_3_11` (regular
+--     node-splitting), both `W_k^{0_k}` and `W_k^{1_k}` sit in
+--     `V_{spl(W_k)}`.  The 5-cell partition therefore distributes
+--     cells 2/4 (`W₁^{i_1}, W₂^{i_2}`) on the J-side and cells
+--     3/5 (`W₁^{o_1}, W₂^{o_2}`) on the V-side here, whereas
+--     claim_3_7's regular-splitting partition keeps all four
+--     tagged cells on the V-side.
+--   * **Two-piece V-branch sdiff.** The inner SWIG's V-side has
+--     just two image pieces (`(G.V \ W₁).image .unsplit` and
+--     `W₁.image .copy0` -- `.copy1` lives on the J-side here),
+--     one fewer than the regular splitting's three.  The
+--     subsequent sdiff against `W₂.image .unsplit` acts on the
+--     smaller piece, and the V-branch classification yields three
+--     resulting forms (cell 1's V-part, `W₁^{o_1}`, `W₂^{o_2}`)
+--     versus claim_3_7's four.
+--
+-- The closing `first | ... | ... | ... | cases heq` block is
+-- structurally identical to claim_3_7's: the abstract pattern of
+-- five same-form, four cross-W same-image, and sixteen
+-- cross-constructor sub-cases is preserved (the cell shuffling
+-- between J/V doesn't change which pairs collide under
+-- `flattenSplit`'s image).
+--
+-- ### Why `Set.InjOn` on `↑(...).J ∪ ↑(...).V` (matching the predicate's carrier set verbatim)?
+--
+-- Pasted directly from `eqViaNodeMap`'s first-conjunct
+-- shape so that the consumer call site in the main theorem can
+-- plug this lemma in with no Set-arithmetic glue.  The
+-- iterated-SWIG operand is the same one that appears on the
+-- left of `eqViaNodeMap` in the main theorem statement,
+-- so the carrier sets line up definitionally.
+--
+-- ### Why disjointness is load-bearing
+--
+-- `flattenSplit` is NOT globally injective on
+-- `SplitNode (SplitNode Node)`.  The five-cell partition rules
+-- out most would-be collisions structurally, but two cross-cell
+-- patterns survive structural filtering and need the disjointness
+-- hypothesis to close: the `^{i_1}`-vs-`^{i_2}` cross-collision
+-- `W₁^{i_1}` vs. `W₂^{i_2}` (which would force
+-- `w₁ = w₂ ∈ W₁ ∩ W₂`) and the symmetric `^{o_1}`-vs-`^{o_2}`
+-- pattern.  The `Disjoint W₁ W₂` hypothesis is consumed exactly
+-- in those two of the 25 subcases, matching the "load-bearing
+-- use of the disjointness hypothesis `W₁ ∩ W₂ = ∅`" call-out in
+-- the verified tex twin's across-cell injectivity paragraph.
+private lemma flattenSplit_injOnHard_of_disjoint
+    (G : CDMG Node) (hG : G.IsCADMG) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    Set.InjOn flattenSplit
+        ((↑((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+              (swigAcyclic G hG W₁ hW₁)
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).J :
+            Set (SplitNode (SplitNode Node))) ∪
+          ↑((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+              (swigAcyclic G hG W₁ hW₁)
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).V) := by
+  -- Classification: every element `z` of the iterated SWIG's
+  -- `J ∪ V` (as Finsets) is in exactly one of 5 disjoint forms.
+  -- Cells 2 (W₁^{i_1}) and 4 (W₂^{i_2}) sit on the J-side
+  -- (the input-tagged copies); cells 3 (W₁^{o_1}) and 5
+  -- (W₂^{o_2}) sit on the V-side (the output-tagged copies);
+  -- cell 1 (untagged J ∪ (V \ W₁ \ W₂)) spans both J and V.
+  have classify : ∀ z : SplitNode (SplitNode Node),
+      z ∈ ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+              (swigAcyclic G hG W₁ hW₁)
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).J ∪
+          ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+              (swigAcyclic G hG W₁ hW₁)
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).V →
+      (∃ a : Node,
+          ((a ∈ G.J) ∨ (a ∈ G.V ∧ a ∉ W₁ ∧ a ∉ W₂)) ∧
+              z = SplitNode.unsplit (SplitNode.unsplit a))
+        ∨ (∃ w : Node, w ∈ W₁ ∧
+              z = SplitNode.unsplit (SplitNode.copy1 w))
+        ∨ (∃ w : Node, w ∈ W₁ ∧
+              z = SplitNode.unsplit (SplitNode.copy0 w))
+        ∨ (∃ w : Node, w ∈ W₂ ∧
+              z = SplitNode.copy1 (SplitNode.unsplit w))
+        ∨ (∃ w : Node, w ∈ W₂ ∧
+              z = SplitNode.copy0 (SplitNode.unsplit w)) := by
+    intro z hz
+    rcases Finset.mem_union.mp hz with hJ | hV
+    · -- z ∈ iterated SWIG's J = (inner.J).image .unsplit ∪
+      --   (W₂.image .unsplit).image .copy1; inner.J unfolds to
+      --   G.J.image .unsplit ∪ W₁.image .copy1.
+      change z ∈ (G.J.image SplitNode.unsplit
+                    ∪ W₁.image SplitNode.copy1).image SplitNode.unsplit ∪
+                  (W₂.image SplitNode.unsplit).image SplitNode.copy1 at hJ
+      rcases Finset.mem_union.mp hJ with hJ12 | hJ3
+      · -- outer .unsplit piece: z = .unsplit y, y ∈ inner.J
+        obtain ⟨y, hy_in, rfl⟩ := Finset.mem_image.mp hJ12
+        rcases Finset.mem_union.mp hy_in with hJ1 | hJ2
+        · -- y = .unsplit j, j ∈ G.J → cell 1 (J-part)
+          obtain ⟨j, hjJ, rfl⟩ := Finset.mem_image.mp hJ1
+          exact Or.inl ⟨j, Or.inl hjJ, rfl⟩
+        · -- y = .copy1 w, w ∈ W₁ → cell 2 (W₁^{i_1}, J-side)
+          obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hJ2
+          exact Or.inr (Or.inl ⟨w, hw, rfl⟩)
+      · -- outer .copy1 piece: z = .copy1 (.unsplit w), w ∈ W₂
+        -- → cell 4 (W₂^{i_2}, J-side)
+        obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hJ3
+        obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy
+        exact Or.inr (Or.inr (Or.inr (Or.inl ⟨w, hw, rfl⟩)))
+    · -- z ∈ iterated SWIG's V
+      change z ∈ (((G.V \ W₁).image SplitNode.unsplit ∪
+                      W₁.image SplitNode.copy0) \
+                    (W₂.image SplitNode.unsplit)).image SplitNode.unsplit ∪
+                  (W₂.image SplitNode.unsplit).image SplitNode.copy0 at hV
+      rcases Finset.mem_union.mp hV with hV12 | hV3
+      · -- outer .unsplit branch
+        obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hV12
+        obtain ⟨hy_in, hy_notW₂img⟩ := Finset.mem_sdiff.mp hy
+        rcases Finset.mem_union.mp hy_in with hV1 | hV2
+        · -- y = .unsplit v, v ∈ G.V \ W₁, v ∉ W₂ → cell 1 (V-part)
+          obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hV1
+          obtain ⟨hv_V, hv_notW₁⟩ := Finset.mem_sdiff.mp hv
+          have hv_notW₂ : v ∉ W₂ := fun h =>
+            hy_notW₂img (Finset.mem_image.mpr ⟨v, h, rfl⟩)
+          exact Or.inl ⟨v, Or.inr ⟨hv_V, hv_notW₁, hv_notW₂⟩, rfl⟩
+        · -- y = .copy0 w, w ∈ W₁ → cell 3 (W₁^{o_1}, V-side)
+          obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hV2
+          exact Or.inr (Or.inr (Or.inl ⟨w, hw, rfl⟩))
+      · -- outer .copy0 piece: z = .copy0 (.unsplit w), w ∈ W₂
+        -- → cell 5 (W₂^{o_2}, V-side)
+        obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hV3
+        obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy
+        exact Or.inr (Or.inr (Or.inr (Or.inr ⟨w, hw, rfl⟩)))
+  -- Main InjOn argument.
+  intro x hx y hy heq
+  -- Convert hx, hy from Set membership to Finset disjunction-then-union.
+  have hx' : x ∈ ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+                    (swigAcyclic G hG W₁ hW₁)
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).J ∪
+              ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+                    (swigAcyclic G hG W₁ hW₁)
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).V := by
+    rcases hx with h | h
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp h)
+    · exact Finset.mem_union_right _ (Finset.mem_coe.mp h)
+  have hy' : y ∈ ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+                    (swigAcyclic G hG W₁ hW₁)
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).J ∪
+              ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+                    (swigAcyclic G hG W₁ hW₁)
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj)).V := by
+    rcases hy with h | h
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp h)
+    · exact Finset.mem_union_right _ (Finset.mem_coe.mp h)
+  -- Classify x and y into one of 5 patterns each (5 × 5 = 25 subcases).
+  rcases classify x hx' with
+    ⟨xa, _, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ <;>
+  rcases classify y hy' with
+    ⟨ya, _, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ <;>
+  -- Reduce flattenSplit applied to each specific pattern.  Each
+  -- of the 25 cases now has heq of the form
+  -- `<constructor> <var> = <constructor> <var>` after definitional
+  -- unfolding; close by cases (constructor mismatch) or by
+  -- injection-then-disjointness contradiction.
+  first
+  -- Same-form cases (5): (X1,Y1), (X2,Y2), (X3,Y3), (X4,Y4), (X5,Y5).
+  -- Inject the underlying equality on the inner var, subst, rfl.
+  | (injection heq with h; subst h; rfl)
+  -- Cross-W cases where both flatten outputs use .copy1 or .copy0
+  -- (4): (X2,Y4), (X4,Y2), (X3,Y5), (X5,Y3).
+  -- After injection on .copy1 / .copy0, we get xw = yw.  But xw
+  -- and yw straddle W₁ / W₂; disjointness gives the contradiction.
+  | (injection heq with h; subst h;
+     exact absurd hyw (Finset.disjoint_left.mp hDisj hxw))
+  | (injection heq with h; subst h;
+     exact absurd hxw (Finset.disjoint_left.mp hDisj hyw))
+  -- Cross-constructor cases (16): heq is .C₁ _ = .C₂ _ with C₁ ≠ C₂.
+  -- `cases heq` closes by no-confusion.
+  | cases heq
+
 -- ref: claim_3_10
 --
--- Refactor port of `twoDisjointNodeSplittingHardCommute` for the
--- `cdmg_typed_edges` design.  Same statement structure as the
--- original — a conjunction `(a) ∧ (b)` of two
--- `eqViaNodeMap` equalities through the shared joint SWIG
--- `G_{swig(W₁ ∪ W₂)}` — and the same eight sub-goals (J, V, E, L
--- for each iteration order).
+-- ## Refactor: `twoDisjointNodeSplittingHardCommute`
 --
--- ## Refactor port — proof structure
+-- Refactor of `twoDisjointNodeSplittingHardCommute` for refactor
+-- `eqViaNodeMap_injective`.  SWIG analogue of claim_3_7's
+-- `twoDisjointNodeSplittingsCommute`.  Same conjunction
+-- `(a) ∧ (b)` shape as the original (two `eqViaNodeMap` equalities
+-- through the shared joint SWIG `G_{swig(W₁ ∪ W₂)}`), but the
+-- predicate `eqViaNodeMap` is replaced by the strengthened
+-- `eqViaNodeMap` (carrying a fifth `Set.InjOn` conjunct
+-- on the carrier map `flattenSplit`).
 --
--- * **J / V / E sub-goals (1, 2, 3, 5, 6, 7) port mechanically.**
---   The tactic blocks are verbatim from the original up to the
---   rename pass `SplitNode → SplitNode`,
---   `toCopy0 → toCopy0`, `toCopy1 → toCopy1`,
---   helper-name `flatten_toCopy0_toCopy0 →
---   flatten_refactor_toCopy0_refactor_toCopy0`, etc.  The
---   structural reason this works is that
---   `nodeSplittingHard`'s J / V / E fields are unchanged
---   from `nodeSplittingHard`'s (the refactor changes only the L
---   side); every `change`-target, every `Finset.image_image`
---   fusion, every `Finset.image_congr` pointwise check has the
---   same shape after the rename.
+-- ### What's reused from the original
 --
--- * **L sub-goals (4 and 8) are structurally reworked for
---   `Sym2.map`.**  The original L-side threaded the lift through
---   `Prod.map flattenSplit flattenSplit` on ordered pairs; the
---   refactor threads it through `Sym2.map flattenSplit`
---   on the `Sym2`-quotient.  The double-image fuses via
---   `Finset.image_image` exactly as before, but the inner
---   map-composition `Sym2.map f ∘ Sym2.map g` fuses (now) to
---   `Sym2.map (f ∘ g)` via Mathlib's `Sym2.map_map`.  The
---   pointwise close uses the inline helper
---   `flatten_refactor_toCopy0_refactor_toCopy0` (verbatim port of
---   `flatten_toCopy0_toCopy0`, all branches unchanged because the
---   tagged-sum carrier `SplitNode` is structurally the
---   same as the pre-refactor `SplitNode`).
+-- The four image-equality conjuncts (`J`, `V`, `E`, `L`) come
+-- straight from the existing (unchanged)
+-- `twoDisjointNodeSplittingHardCommute` via the destructuring
+-- binder in the opening `obtain ⟨⟨hJa, hVa, hEa, hLa⟩, ⟨hJb,
+-- hVb, hEb, hLb⟩⟩ := ...` line.  The refactor does NOT redo the
+-- ~450-line J/V/E/L bookkeeping -- it would produce a bit-for-bit
+-- identical tactic block, so reusing the original keeps the
+-- LN-to-Lean correspondence one-to-one and the file size
+-- manageable.  The new content is purely the InjOn discharge
+-- (the two `refine` underscores below the destructure).
 --
--- * **Inline `have`-locals match the original's style.**  Per the
---   manager.md "Net-new helpers also need REPLACEMENT markers"
---   guidance: prefer inline `have`-locals over hoisted top-level
---   declarations.  The original `twoDisjointNodeSplittingHardCommute`
---   keeps `flatten_toCopy0_toCopy0` / `flatten_toCopy1_toCopy1`
---   inline; we do the same with the `refactor_`-prefixed twins.
--- claim_3_10 -- start statement
-theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
+-- ### Why the InjOn discharge is non-trivial
+--
+-- The carrier map `flattenSplit` is not globally injective: it
+-- collapses off-iterated-graph constructor patterns (see the
+-- comment block above
+-- `flattenSplit_injOnHard_of_disjoint`).  The witnessing
+-- InjOn property holds only on the iterated SWIG's `J ∪ V`, and
+-- only because the disjointness hypothesis `Disjoint W₁ W₂` rules
+-- out the two would-be cross-cell collisions (`W₁^{i_1}` vs.
+-- `W₂^{i_2}` and `W₁^{o_1}` vs. `W₂^{o_2}`).  Without
+-- disjointness the InjOn conjunct fails, and so does the LN's
+-- claim "the iterated CDMG equals the single-step CDMG
+-- `G_{swig(W₁ ∪ W₂)}`" -- two SWIG-copies of a node in
+-- `W₁ ∩ W₂` would collide in the iterated graph in a way the
+-- single-step graph cannot reproduce.
+--
+-- ### How disjointness flows in (both orderings)
+--
+-- The technical core is the helper
+-- `flattenSplit_injOnHard_of_disjoint` above, invoked
+-- twice:
+--   * Direction (a)
+--     `(G_{swig W₁})_{swig W₂} = G_{swig(W₁ ∪ W₂)}`: helper
+--     applied with `(W₁, W₂, hDisj)` in the natural order.
+--   * Direction (b)
+--     `(G_{swig W₂})_{swig W₁} = G_{swig(W₁ ∪ W₂)}`: helper
+--     applied with `(W₂, W₁, hDisj.symm)` -- the iterated SWIG
+--     in the InjOn obligation swaps inner/outer roles of `W₁`
+--     and `W₂`, and `Disjoint` is symmetric.
+-- Both directions land at the same single-step right-hand side
+-- `G_{swig(W₁ ∪ W₂)}`, recovering the LN's triple-equality
+-- "swap-symmetry" reading via transitivity, exactly as in the
+-- verified tex twin's "Recovery of the LN's triple equality"
+-- closing paragraph.
+-- ## Helper: pre-injectivity-refactor `twoDisjointNodeSplittingHardCommute`
+--
+-- Returns the four image-equality conjuncts (per `imageEqs` from
+-- `TwoDisjointNode.lean`), proof body verbatim from the
+-- pre-injectivity-refactor `twoDisjointNodeSplittingHardCommute`. The new public
+-- theorem below adds the `Set.InjOn` proofs on top.
+private theorem twoDisjointNodeSplittingHardCommute_imageEqs (G : CDMG Node)
     (hG : G.IsCADMG) (W₁ W₂ : Finset Node)
     (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
-    eqViaNodeMap
+    imageEqs
         ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
             (swigAcyclic G hG W₁ hW₁)
             (W₂.image SplitNode.unsplit)
@@ -249,7 +496,7 @@ theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
             (Finset.union_subset hW₁ hW₂))
         flattenSplit
       ∧
-    eqViaNodeMap
+    imageEqs
         ((G.nodeSplittingHard hG W₂ hW₂).nodeSplittingHard
             (swigAcyclic G hG W₂ hW₂)
             (W₁.image SplitNode.unsplit)
@@ -257,7 +504,6 @@ theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
         (G.nodeSplittingHard hG (W₁ ∪ W₂)
             (Finset.union_subset hW₁ hW₂))
         flattenSplit
--- claim_3_10 -- end statement
   := by
   -- Inline helpers: `flattenSplit` collapses the two-stage
   -- `toCopy0` chain to the single `toCopy0 (A ∪ B)`.
@@ -644,6 +890,35 @@ theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
     intro x _
     exact flatten_refactor_toCopy0_refactor_toCopy0 W₂ W₁ x
 
+-- claim_3_10 -- start statement
+theorem twoDisjointNodeSplittingHardCommute (G : CDMG Node)
+    (hG : G.IsCADMG) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    eqViaNodeMap
+        ((G.nodeSplittingHard hG W₁ hW₁).nodeSplittingHard
+            (swigAcyclic G hG W₁ hW₁)
+            (W₂.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingHard_V hW₁ hW₂ hDisj))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂)
+            (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+      ∧
+    eqViaNodeMap
+        ((G.nodeSplittingHard hG W₂ hW₂).nodeSplittingHard
+            (swigAcyclic G hG W₂ hW₂)
+            (W₁.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingHard_V hW₂ hW₁ hDisj.symm))
+        (G.nodeSplittingHard hG (W₁ ∪ W₂)
+            (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+-- claim_3_10 -- end statement
+
+  := by
+  obtain ⟨⟨hJa, hVa, hEa, hLa⟩, ⟨hJb, hVb, hEb, hLb⟩⟩ :=
+    twoDisjointNodeSplittingHardCommute_imageEqs G hG W₁ W₂ hW₁ hW₂ hDisj
+  refine ⟨⟨?_, hJa, hVa, hEa, hLa⟩, ⟨?_, hJb, hVb, hEb, hLb⟩⟩
+  · exact flattenSplit_injOnHard_of_disjoint G hG W₁ W₂ hW₁ hW₂ hDisj
+  · exact flattenSplit_injOnHard_of_disjoint G hG W₂ W₁ hW₂ hW₁ hDisj.symm
 end CDMG
 
 end Causality

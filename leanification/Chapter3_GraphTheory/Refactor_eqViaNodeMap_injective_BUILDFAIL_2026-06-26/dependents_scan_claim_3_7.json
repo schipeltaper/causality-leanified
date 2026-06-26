@@ -1,0 +1,386 @@
+{
+  "target_ref": "claim_3_7",
+  "target_title": "eqViaNodeMap",
+  "target_file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+  "method": "rename + lake build + grep",
+  "grep_hits": [
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 5850,
+      "snippet": "      \"snippet\": \"--   `eqViaNodeMap` does not bundle a \\\"mapped\\\" CDMG, so downstream\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 6040,
+      "snippet": "      \"snippet\": \"-- *Result is a CDMG (`eqViaNodeMap` on `CDMG (SplitNode (SplitNode Node))`\""
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 6240,
+      "snippet": "      \"snippet\": \"  \\\"design_choices\\\": \\\"**Literal `=` of CDMGs over `SplitNode Node`, not `eqViaNodeMap` / `flattenSplit`.** This is the dominant structural simplification of this row relative to `c"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 6720,
+      "snippet": "      \"snippet\": \"  \\\"lean_code_with_comments\\\": \\\"theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)\\\\n    (W : Finset Node) (hW : W ⊆ G.V) :\\\\n    eqViaNodeMap\\\\n        (G.hardInterv"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 6725,
+      "snippet": "      \"snippet\": \"  \\\"lean_code_without_comments\\\": \\\"theorem marginalize_swig_eq_doit (G : CDMG Node) (hG : G.IsCADMG)\\\\n    (W : Finset Node) (hW : W ⊆ G.V) :\\\\n    eqViaNodeMap\\\\n        (G.hardInt"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 6735,
+      "snippet": "      \"snippet\": \"  \\\"design_choices\\\": \\\"**Carrier-relabelling equality (`eqViaNodeMap`), not literal `=` of CDMGs.** The LHS `G.hardInterventionOn W _` lives in `CDMG Node` (hard intervention preser"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+      "line": 7185,
+      "snippet": "      \"snippet\": \"  \\\"design_choices\\\": \\\"**Literal `=` of CDMGs, not `eqViaNodeMap` / `flattenSplit`.** This is the dominant simplification relative to `claim_3_7` (`TwoDisjointNode`). Both sides tak"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "line": 50,
+      "snippet": "reading is captured by `eqViaNodeMap` (defined in `claim_3_7`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "line": 83,
+      "snippet": "-- `eqViaNodeMap` *are* in `namespace CDMG`, so dot"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "line": 85,
+      "snippet": "-- `eqViaNodeMap` resolve directly without further imports."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "line": 150,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+      "line": 158,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 38,
+      "snippet": "via `claim_3_7`'s `eqViaNodeMap` predicate, with a canonical"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 373,
+      "snippet": "--   site `eqViaNodeMap RHS LHS flattenSwigDoit`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 375,
+      "snippet": "--   `eqViaNodeMap iter joint flatten` convention established by"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 393,
+      "snippet": "--   `eqViaNodeMap` claim.  Disjointness `Disjoint W₁ W₂`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 415,
+      "snippet": "-- `eqViaNodeMap RHS LHS flattenSwigDoit`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 444,
+      "snippet": "--   same four binder pairs, same `eqViaNodeMap`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 446,
+      "snippet": "--   relabelling — because `eqViaNodeMap` is defined the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 447,
+      "snippet": "--   same componentwise-over-`(J, V, E, L)` way as `eqViaNodeMap`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 458,
+      "snippet": "--   `eqViaNodeMap` not literal `=`; explicit LN-side ↔"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 461,
+      "snippet": "--   disjointness; direction of `eqViaNodeMap` with RHS on"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 466,
+      "snippet": "--   `eqViaNodeMap → eqViaNodeMap`,"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 483,
+      "snippet": "--   automatically, and `eqViaNodeMap` with"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+      "line": 511,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
+      "line": 42,
+      "snippet": "`eqViaNodeMap`/`flattenSplit` shape used by `claim_3_7`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
+      "line": 210,
+      "snippet": "--   NOT `eqViaNodeMap` / `flattenSplit`.**  Both"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
+      "line": 221,
+      "snippet": "--   orders, forcing the `eqViaNodeMap` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
+      "line": 50,
+      "snippet": "node-splitting-not-SWIG analog of this row.  No `eqViaNodeMap` /"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
+      "line": 367,
+      "snippet": "--   `eqViaNodeMap` / `flattenSplit`.**  Both"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
+      "line": 381,
+      "snippet": "--   `eqViaNodeMap` / `flattenSplit` workaround."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
+      "line": 40,
+      "snippet": "in the same carrier (no `eqViaNodeMap` workaround needed; see the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
+      "line": 53,
+      "snippet": "rendered via `claim_3_7`'s `eqViaNodeMap` predicate, with the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
+      "line": 66,
+      "snippet": "`eqViaNodeMap` follows the LN's explicitly-stated direction"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
+      "line": 356,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 49,
+      "snippet": "splitting\", packaged as the helper predicate `eqViaNodeMap`."
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 53,
+      "snippet": "`SplitNode α`).  The same `flattenSplit` / `eqViaNodeMap` encoding"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 78,
+      "snippet": "--   * `flattenSplit / eqViaNodeMap / image_unsplit_subset_…` →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 124,
+      "snippet": "-- ## Helper: `eqViaNodeMap` (refactor)"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 126,
+      "snippet": "-- Refactor port of `eqViaNodeMap` for the `cdmg_typed_edges`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 134,
+      "snippet": "-- See the design block above the original `eqViaNodeMap` for the"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 143,
+      "snippet": "def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 188,
+      "snippet": "-- `eqViaNodeMap` equalities through the shared joint"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 232,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 239,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 54,
+      "snippet": "* `eqViaNodeMap` — the \"two CDMGs are equal up to the canonical"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 77,
+      "snippet": "\"equality of CDMGs\" reading becomes the imported `eqViaNodeMap`"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 139,
+      "snippet": "--   * `flattenSplit / eqViaNodeMap / image_unsplit_subset_…` →"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 200,
+      "snippet": "-- `eqViaNodeMap` equalities through the shared joint SWIG"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 243,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+      "line": 252,
+      "snippet": "    eqViaNodeMap"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 12,
+      "snippet": "The current formalisation of `eqViaNodeMap` at `Section3_2/TwoDisjointNode.lean:143` reads:"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 15,
+      "snippet": "def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 31,
+      "snippet": "Then `G.J.image f = {0} = G'.J`, `G.V.image f = {1} = G'.V`, `G.E.image (Prod.map f f) = {(0, 1)} = G'.E` (both `(0,2)` and `(1,2)` collapse to `(0,1)`), `G.L.image (Sym2.map f) = ∅ = G'.L`. So `eqVia"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 35,
+      "snippet": "Every consumer call site (`claim_3_7`, `claim_3_8`, `claim_3_10`, `claim_3_11`, `claim_3_14`, `claim_3_15`, `claim_3_18`, `claim_3_19`) passes a specific structural flatten map (`flattenSplit`, `flatt"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 50,
+      "snippet": "This is the \"encoding too weak; relies on use-site discipline\" pattern. The predicate `eqViaNodeMap G G' f` should commit to \"G and G' are isomorphic via the carrier map f\" — which requires f to be in"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 54,
+      "snippet": "Strengthen `eqViaNodeMap` by adding an injectivity conjunct on the source carrier set. The natural minimum is **injectivity on `↑G.J ∪ ↑G.V` as a `Set Node`** — the nodes that appear in any of G's fou"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 58,
+      "snippet": "`eqViaNodeMap` becomes:"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 61,
+      "snippet": "def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 78,
+      "snippet": "Each consumer of `eqViaNodeMap` now has to discharge the new `Set.InjOn` conjunct in its `eqViaNodeMap` proof obligation. This is a per-row new sub-proof, typically 10-30 lines, structured as a case-a"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 82,
+      "snippet": "- **claim_3_7** (`TwoDisjointNode.lean`) — `flattenSplit`'s `Set.InjOn` on `(G_split W₁)_split W₂`'s J ∪ V. Two iteration orders, two `eqViaNodeMap` calls; both need the new InjOn proof."
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 91,
+      "snippet": "Each row's flatten map needs an `_InjOn` lemma proved once and threaded through every `eqViaNodeMap` call in that file. The proofs are mechanical — case-analysis on the constructor pairs (3×3 = 9 case"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 97,
+      "snippet": "- **Leave `eqViaNodeMap` as-is and add a separate `eqViaNodeMap_with_injOn` predicate** — bifurcates the API. The whole reason `eqViaNodeMap` exists is to be the canonical \"equal-up-to-renaming\" predi"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 98,
+      "snippet": "- **Add `Set.InjOn` as a side hypothesis on each consumer theorem rather than as a conjunct of `eqViaNodeMap`** — re-introduces the use-site-discipline pattern this refactor is designed to eliminate. "
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 108,
+      "snippet": "    --decl-name eqViaNodeMap"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 111,
+      "snippet": "The `--decl-name eqViaNodeMap` override is needed because `find_dependents.py` defaults to the row's title (`TwoDisjointNode`) but the rename target is the helper `eqViaNodeMap` defined inside that ro"
+    },
+    {
+      "file": "leanification/refactors/refactor_eqViaNodeMap_injective.md",
+      "line": 125,
+      "snippet": "RECOMMENDED_INVOCATION: python extras/do_refactor.py init --chapter 3 --root-ref claim_3_7 --name eqViaNodeMap_injective --decl-name eqViaNodeMap"
+    }
+  ],
+  "lake_errors": [
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 232,
+      "col": 4,
+      "snippet": "Unknown identifier `eqViaNodeMap`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 239,
+      "col": 4,
+      "snippet": "Unknown identifier `eqViaNodeMap`"
+    },
+    {
+      "level": "error",
+      "file": "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNode.lean",
+      "line": 335,
+      "col": 2,
+      "snippet": "No goals to be solved"
+    }
+  ],
+  "consumer_files": [
+    "leanification/Chapter3_GraphTheory/Refactor_cdmg_typed_edges_BUILDFAIL_2026-06-19/dependents_scan_def_3_1.json",
+    "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodes.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/AddingInterventionNodesSwig.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventions.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/DisjointHardInterventionsSwig.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/MarginalizationAndIntervention.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
+    "leanification/Chapter3_GraphTheory/Section3_2/TwoDisjointNodeSwig.lean",
+    "leanification/refactors/refactor_eqViaNodeMap_injective.md"
+  ],
+  "consumer_refs": [
+    "claim_3_10",
+    "claim_3_11",
+    "claim_3_14",
+    "claim_3_15",
+    "claim_3_18",
+    "claim_3_19",
+    "claim_3_8"
+  ]
+}

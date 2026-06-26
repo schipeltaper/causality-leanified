@@ -121,28 +121,76 @@ def flattenSplit :
   | .copy1 (.copy1 w) => SplitNode.copy1 w
 -- claim_3_7 --- end helper
 
--- ## Helper: `eqViaNodeMap` (refactor)
+
+-- ## Helper: `eqViaNodeMap` -- strengthened with `Set.InjOn`
 --
--- Refactor port of `eqViaNodeMap` for the `cdmg_typed_edges`
--- design.  Same 4-conjunct shape, but the L-conjunct uses
--- `Sym2.map f` instead of `Prod.map f f`: under the post-refactor
--- `def_3_1` shape `L : Finset (Sym2 Node)`, the per-element lift
--- along `f : α → β` is `Sym2.map f : Sym2 α → Sym2 β` (the action
--- of `f` on the `Sym2`-quotient `(Node × Node) / swap`), not the
--- Cartesian `Prod.map f f`.
+-- Refactor of `eqViaNodeMap` for refactor `eqViaNodeMap_injective`
+-- (plan: `leanification/refactors/refactor_eqViaNodeMap_injective.md`).
 --
--- See the design block above the original `eqViaNodeMap` for the
--- substantive design rationale (`Prop`-valued helper, four
--- conjuncts mirroring `CDMG`'s four data fields, image-level
--- reading of the LN's "equality up to the canonical bijection of
--- carriers").  Only the L-conjunct's typing changes; the
--- conjunctive shape, the use of `Finset.image` over four data
--- fields, and the design choice against bundling a transported
--- CDMG are unchanged.
+-- ### Why a 5th conjunct?
+--
+-- The original 4-conjunct predicate (image equality on `J`, `V`,
+-- `E`, `L`) is too weak: `f : α → β` is unconstrained, so a
+-- many-to-one `f` that collapses distinct G-nodes onto the same
+-- G'-node can satisfy all four image-equality conjuncts (the
+-- images are *sets*, not multisets, so `Finset.image` drops
+-- duplicates) -- and yet G and G' are NOT isomorphic as CDMGs.
+-- A concrete counter-witness (refactor plan §"Concrete
+-- counter-witness"): `G : CDMG (Fin 3)` with 3 nodes and a
+-- 2-node-image-collapse `f`, against `G' : CDMG (Fin 2)` -- all
+-- four image-equality conjuncts hold, but the CDMGs have
+-- different node counts. Without the injectivity conjunct the
+-- predicate "G and G' are equal up to the carrier bijection `f`"
+-- silently degenerates to "G and G' are equal up to *some*
+-- many-to-one `f`-image", which is a much weaker claim that
+-- downstream consumers (`claim_3_8`, `claim_3_10/11/14/15/18/19`)
+-- cannot reason about node-count preservation or fibre structure
+-- from. The new InjOn conjunct rules out such collapsing and
+-- restores the predicate's intended "equal up to renaming"
+-- reading.
+--
+-- ### Why `Set.InjOn f (↑G.J ∪ ↑G.V)` and not `Function.Injective f`?
+--
+-- `f : α → β` may be arbitrary off the carrier set; the LN's
+-- notion of "equivalence up to canonical carrier bijection" only
+-- depends on what `f` does on the actual nodes of `G`. Several
+-- consumer flatten maps (`flattenSplit` here, `flattenIntExt` in
+-- `claim_3_14`, etc.) are NOT globally injective -- they collapse
+-- off-graph constructor patterns -- but ARE injective on the
+-- iterated graph's node set under the per-row disjointness side
+-- condition. Requiring `Function.Injective f` would force every
+-- consumer to prove a stronger (and false) global statement;
+-- `Set.InjOn f (↑G.J ∪ ↑G.V)` is the *minimum* content needed:
+-- distinct G-nodes (in `J` or `V`) map to distinct G'-nodes.
+-- E and L endpoints are constrained to `J ∪ V` by `def_3_1`'s
+-- subset axioms (`hE_subset : G.E ⊆ G.J ×ˢ G.V` and the
+-- analogous `hL_subset` on `L`'s `Sym2`-quotient endpoints), so
+-- injectivity on `J ∪ V` automatically preserves E and L
+-- cardinalities and distinctness when transported via `f`. The
+-- carrier set `↑G.J ∪ ↑G.V` is thus correct and minimal.
+--
+-- ### Why FIRST conjunct?
+--
+-- Logical priority: a future proof reading the predicate sees the
+-- strong structural constraint up front; downstream extractors
+-- (e.g. for `Set.InjOn`-on-subsets via `Set.InjOn.mono`) can
+-- pattern-match `.1` instead of digging through the four
+-- image-equality fields. This ordering also matches the verified
+-- tex twin's narrative -- the "Injectivity of the carrier
+-- bijection" paragraph in `tex/refactor_claim_3_7_proof_TwoDisjointNode.tex`
+-- caps the componentwise verification before the "Combining ..."
+-- closing -- so reading order in Lean tracks reading order in
+-- the proof prose.
+--
+-- The four image-equality conjuncts are unchanged from the
+-- original. The Set coercions `↑G.J` and `↑G.V` are `Finset.coe`
+-- into `Set α`; `↑G.J ∪ ↑G.V` is the Set union (definitionally
+-- equal to `↑(G.J ∪ G.V)` by `Finset.coe_union`).
 -- claim_3_7 --- start helper
 def eqViaNodeMap {α β : Type*} [DecidableEq α] [DecidableEq β]
     (G : CDMG α) (G' : CDMG β) (f : α → β) : Prop :=
-  G.J.image f = G'.J
+  Set.InjOn f ((↑G.J : Set α) ∪ ↑G.V)
+    ∧ G.J.image f = G'.J
     ∧ G.V.image f = G'.V
     ∧ G.E.image (Prod.map f f) = G'.E
     ∧ G.L.image (Sym2.map f) = G'.L
@@ -180,70 +228,284 @@ private lemma image_unsplit_subset_nodeSplittingOn_V
   refine Finset.mem_image.mpr ⟨v, ?_, rfl⟩
   exact Finset.mem_sdiff.mpr ⟨hW₂ hvW₂, Finset.disjoint_right.mp hDisj hvW₂⟩
 
+
+-- ## Helper: `flattenSplit` is `InjOn` on the iterated graph's J ∪ V
+--
+-- Net-new helper introduced by refactor `eqViaNodeMap_injective`
+-- to discharge the strengthened predicate's `Set.InjOn` conjunct.
+--
+-- ### Role
+--
+-- Establishes `Set.InjOn flattenSplit` on the carrier set of the
+-- iterated CDMG `(G_{spl(W₁)})_{spl(W₂)}`, under the disjointness
+-- hypothesis `Disjoint W₁ W₂`. This is the technical core of the
+-- refactor: every existing image-equality conjunct of the original
+-- `twoDisjointNodeSplittingsCommute` ports verbatim under the new
+-- predicate; only the new InjOn conjunct requires a substantively
+-- new proof, and the whole of that work is concentrated in this
+-- lemma.
+--
+-- ### Why a separate lemma (rather than inlined in the main theorem)?
+--
+-- Reused twice in `twoDisjointNodeSplittingsCommute` --
+-- once for direction (a) `(G_{spl W₁})_{spl W₂} = G_{spl(W₁ ∪ W₂)}`,
+-- once for direction (b) `(G_{spl W₂})_{spl W₁} = G_{spl(W₁ ∪ W₂)}`
+-- via the `(W₁ ↔ W₂)` swap of the helper's arguments. The proof
+-- argument is also geometrically clean enough to deserve its own
+-- name: a five-cell partition of the iterated graph's node set
+-- (`J ∪ (V \ W₁ \ W₂)` plus the four tagged copies
+-- `W₁^{0₁}, W₁^{1₁}, W₂^{0₂}, W₂^{1₂}`) followed by a
+-- 5 × 5 = 25 case analysis with structural-equality / disjointness
+-- closures, mirroring the verified tex twin's "Injectivity of the
+-- carrier bijection on the iterated graph's node set" paragraph
+-- one-to-one.
+--
+-- ### Why `Set.InjOn` on `↑(...).J ∪ ↑(...).V` (matching the predicate's carrier set verbatim)?
+--
+-- Pasted directly from `eqViaNodeMap`'s first-conjunct
+-- shape so that the consumer call site in the main theorem can
+-- plug this lemma in with no Set-arithmetic glue. The
+-- iterated-graph operand is the same one that appears on the
+-- left of `eqViaNodeMap` in the main theorem statement,
+-- so the carrier sets line up definitionally.
+--
+-- ### Why disjointness is load-bearing
+--
+-- `flattenSplit` is NOT globally injective on
+-- `SplitNode (SplitNode Node)`. For instance,
+-- `flattenSplit (.copy0 (.unsplit w)) = .copy0 w` and
+-- `flattenSplit (.copy0 (.copy0 w)) = .copy0 w` -- two distinct
+-- input patterns collide off the iterated graph's `J ∪ V`. The
+-- five-cell partition rules out most such would-be collisions
+-- structurally, but two patterns survive structural filtering and
+-- need the disjointness hypothesis to close: the `^0`-vs-`^0`
+-- cross-collision `W₁^{0₁}` vs. `W₂^{0₂}` (which would force
+-- `w₁ = w₂ ∈ W₁ ∩ W₂`) and the symmetric `^1`-vs-`^1` pattern.
+-- The `Disjoint W₁ W₂` hypothesis is consumed exactly in those
+-- two of the 25 subcases (the `(injection heq with h; subst h;
+-- exact absurd ... (Finset.disjoint_left.mp hDisj _))` branches
+-- in the closing `first | ... | ... | ...` block), matching the
+-- "load-bearing use of the disjointness hypothesis
+-- `W₁ ∩ W₂ = ∅`" call-out in the verified tex twin's
+-- across-cell injectivity paragraph.
+private lemma flattenSplit_injOn_of_disjoint
+    (G : CDMG Node) (W₁ W₂ : Finset Node)
+    (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V) (hDisj : Disjoint W₁ W₂) :
+    Set.InjOn flattenSplit
+        ((↑((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).J :
+            Set (SplitNode (SplitNode Node))) ∪
+          ↑((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).V) := by
+  -- Classification: every element `z` of the iterated graph's
+  -- `J ∪ V` (as Finsets) is in exactly one of 5 disjoint forms.
+  -- This mirrors the 5-cell partition of the carrier in the
+  -- verified tex twin's "Injectivity of the carrier bijection"
+  -- paragraph.
+  have classify : ∀ z : SplitNode (SplitNode Node),
+      z ∈ ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).J ∪
+          ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+              (W₂.image SplitNode.unsplit)
+              (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).V →
+      (∃ a : Node,
+          ((a ∈ G.J) ∨ (a ∈ G.V ∧ a ∉ W₁ ∧ a ∉ W₂)) ∧
+              z = SplitNode.unsplit (SplitNode.unsplit a))
+        ∨ (∃ w : Node, w ∈ W₁ ∧
+              z = SplitNode.unsplit (SplitNode.copy0 w))
+        ∨ (∃ w : Node, w ∈ W₁ ∧
+              z = SplitNode.unsplit (SplitNode.copy1 w))
+        ∨ (∃ w : Node, w ∈ W₂ ∧
+              z = SplitNode.copy0 (SplitNode.unsplit w))
+        ∨ (∃ w : Node, w ∈ W₂ ∧
+              z = SplitNode.copy1 (SplitNode.unsplit w)) := by
+    intro z hz
+    rcases Finset.mem_union.mp hz with hJ | hV
+    · -- z ∈ iterated graph's J = (G.J.image .unsplit).image .unsplit
+      change z ∈ (G.J.image SplitNode.unsplit).image
+                  SplitNode.unsplit at hJ
+      obtain ⟨y, hyG, rfl⟩ := Finset.mem_image.mp hJ
+      obtain ⟨j, hjJ, rfl⟩ := Finset.mem_image.mp hyG
+      exact Or.inl ⟨j, Or.inl hjJ, rfl⟩
+    · -- z ∈ iterated graph's V
+      change z ∈
+          ((((G.V \ W₁).image SplitNode.unsplit
+                ∪ W₁.image SplitNode.copy0
+                ∪ W₁.image SplitNode.copy1)
+            \ (W₂.image SplitNode.unsplit)).image
+                SplitNode.unsplit
+          ∪ (W₂.image SplitNode.unsplit).image SplitNode.copy0
+          ∪ (W₂.image SplitNode.unsplit).image SplitNode.copy1) at hV
+      rcases Finset.mem_union.mp hV with hV12 | hV3
+      · rcases Finset.mem_union.mp hV12 with hV1 | hV2
+        · -- outer .unsplit branch
+          obtain ⟨y, hy, rfl⟩ := Finset.mem_image.mp hV1
+          obtain ⟨hy_in, hy_notW₂img⟩ := Finset.mem_sdiff.mp hy
+          rcases Finset.mem_union.mp hy_in with hy_in12 | hy_C1
+          · rcases Finset.mem_union.mp hy_in12 with hy_Vuns | hy_C0
+            · -- y = .unsplit v, v ∈ G.V \ W₁, v ∉ W₂
+              obtain ⟨v, hv, rfl⟩ := Finset.mem_image.mp hy_Vuns
+              obtain ⟨hv_V, hv_notW₁⟩ := Finset.mem_sdiff.mp hv
+              have hv_notW₂ : v ∉ W₂ := fun h =>
+                hy_notW₂img (Finset.mem_image.mpr ⟨v, h, rfl⟩)
+              exact Or.inl ⟨v, Or.inr ⟨hv_V, hv_notW₁, hv_notW₂⟩, rfl⟩
+            · -- y = .copy0 w, w ∈ W₁
+              obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy_C0
+              exact Or.inr (Or.inl ⟨w, hw, rfl⟩)
+          · -- y = .copy1 w, w ∈ W₁
+            obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy_C1
+            exact Or.inr (Or.inr (Or.inl ⟨w, hw, rfl⟩))
+        · -- outer .copy0 branch: z = .copy0 (.unsplit w), w ∈ W₂
+          obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hV2
+          obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy'
+          exact Or.inr (Or.inr (Or.inr (Or.inl ⟨w, hw, rfl⟩)))
+      · -- outer .copy1 branch: z = .copy1 (.unsplit w), w ∈ W₂
+        obtain ⟨y', hy', rfl⟩ := Finset.mem_image.mp hV3
+        obtain ⟨w, hw, rfl⟩ := Finset.mem_image.mp hy'
+        exact Or.inr (Or.inr (Or.inr (Or.inr ⟨w, hw, rfl⟩)))
+  -- Main InjOn argument.
+  intro x hx y hy heq
+  -- Convert hx, hy from Set membership to Finset disjunction-then-union.
+  have hx' : x ∈ ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).J ∪
+              ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).V := by
+    rcases hx with h | h
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp h)
+    · exact Finset.mem_union_right _ (Finset.mem_coe.mp h)
+  have hy' : y ∈ ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).J ∪
+              ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+                    (W₂.image SplitNode.unsplit)
+                    (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj)).V := by
+    rcases hy with h | h
+    · exact Finset.mem_union_left _ (Finset.mem_coe.mp h)
+    · exact Finset.mem_union_right _ (Finset.mem_coe.mp h)
+  -- Classify x and y into one of 5 patterns each (5 × 5 = 25 subcases).
+  rcases classify x hx' with
+    ⟨xa, _, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ | ⟨xw, hxw, rfl⟩ <;>
+  rcases classify y hy' with
+    ⟨ya, _, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ | ⟨yw, hyw, rfl⟩ <;>
+  -- Reduce flattenSplit applied to each specific pattern.  Each of
+  -- the 25 cases now has heq of the form
+  -- `<constructor> <var> = <constructor> <var>` after definitional
+  -- unfolding; close by cases (constructor mismatch) or by
+  -- injection-then-disjointness contradiction.
+  first
+  -- Same-form cases (5): (X1,Y1), (X2,Y2), (X3,Y3), (X4,Y4), (X5,Y5).
+  -- Inject the underlying equality on the inner var, subst, rfl.
+  | (injection heq with h; subst h; rfl)
+  -- Cross-W cases where both flatten outputs use .copy0 or .copy1
+  -- (4): (X2,Y4), (X4,Y2), (X3,Y5), (X5,Y3).
+  -- After injection on .copy0 / .copy1, we get xw = yw.  But xw ∈ W₁
+  -- and yw ∈ W₂ (or vice versa); disjointness gives the
+  -- contradiction.
+  | (injection heq with h; subst h;
+     exact absurd hyw (Finset.disjoint_left.mp hDisj hxw))
+  | (injection heq with h; subst h;
+     exact absurd hxw (Finset.disjoint_left.mp hDisj hyw))
+  -- Cross-constructor cases (16): heq is .C₁ _ = .C₂ _ with C₁ ≠ C₂.
+  -- `cases heq` closes by no-confusion.
+  | cases heq
+
 -- ref: claim_3_7
 --
--- Refactor port of `twoDisjointNodeSplittingsCommute` for the
--- `cdmg_typed_edges` design.  Same statement structure as the
--- original — a conjunction `(a) ∧ (b)` of two
--- `eqViaNodeMap` equalities through the shared joint
--- intervention `G_{spl(W₁ ∪ W₂)}` — and the same eight
--- sub-goals (J, V, E, L for each iteration order).
+-- ## Refactor: `twoDisjointNodeSplittingsCommute`
 --
--- ## Refactor port — proof structure
+-- Refactor of `twoDisjointNodeSplittingsCommute` for refactor
+-- `eqViaNodeMap_injective`. Same conjunction `(a) ∧ (b)` shape
+-- as the original (two `eqViaNodeMap` equalities through the
+-- shared single splitting `G_{spl(W₁ ∪ W₂)}`), but the predicate
+-- `eqViaNodeMap` is replaced by the strengthened
+-- `eqViaNodeMap` (carrying a fifth `Set.InjOn` conjunct
+-- on the carrier map `flattenSplit`).
 --
--- * **J / V / E sub-goals (1, 2, 3, 5, 6, 7) port mechanically.**
---   The tactic blocks are verbatim from the original up to the
---   rename pass `SplitNode → SplitNode`,
---   `toCopy0 → toCopy0`, `toCopy1 → toCopy1`,
---   helper-name `flatten_toCopy0_toCopy0 →
---   flatten_refactor_toCopy0_refactor_toCopy0`, etc.  The
---   structural reason this works is that
---   `nodeSplittingOn`'s J / V / E fields are unchanged
---   from `nodeSplittingOn`'s (the refactor changes only the L
---   side); every `change`-target, every `Finset.image_image`
---   fusion, every `Finset.image_congr` pointwise check has the
---   same shape after the rename.
+-- ### What's reused from the original
 --
--- * **L sub-goals (4 and 8) are structurally reworked for
---   `Sym2.map`.**  The original L-side threaded the lift through
---   `Prod.map flattenSplit flattenSplit` on ordered pairs; the
---   refactor threads it through `Sym2.map flattenSplit`
---   on the `Sym2`-quotient.  The double-image fuses via
---   `Finset.image_image` exactly as before, but the inner
---   map-composition `Sym2.map f ∘ Sym2.map g` fuses (now) to
---   `Sym2.map (f ∘ g)` via Mathlib's `Sym2.map_map`
---   (`Sym2.map g (Sym2.map f x) = Sym2.map (g ∘ f) x`).  The
---   pointwise close uses the inline helper
---   `flatten_refactor_toCopy0_refactor_toCopy0` (verbatim port of
---   `flatten_toCopy0_toCopy0`, all branches unchanged because the
---   tagged-sum carrier `SplitNode` is structurally the
---   same as the pre-refactor `SplitNode`).
+-- The four image-equality conjuncts (`J`, `V`, `E`, `L`) come
+-- straight from the existing (unchanged) `twoDisjointNodeSplittingsCommute`
+-- via the destructuring binder in the opening `obtain ⟨⟨hJa, hVa,
+-- hEa, hLa⟩, ⟨hJb, hVb, hEb, hLb⟩⟩ := ...` line. The refactor
+-- does NOT redo the ~500-line J/V/E/L bookkeeping -- it would
+-- produce a bit-for-bit identical tactic block, so reusing the
+-- original keeps the LN-to-Lean correspondence one-to-one and
+-- the file size manageable. The new content is purely the InjOn
+-- discharge (the two `refine` underscores below the destructure).
 --
--- * **Inline `have`-locals match the original's style.**  Per the
---   manager.md "Net-new helpers also need REPLACEMENT markers"
---   guidance: prefer inline `have`-locals over hoisted top-level
---   declarations.  The original `twoDisjointNodeSplittingsCommute`
---   keeps `flatten_toCopy0_toCopy0` / `flatten_toCopy1_toCopy1`
---   inline; we do the same with the `refactor_`-prefixed twins.
--- claim_3_7 -- start statement
-theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
+-- ### Why the InjOn discharge is non-trivial
+--
+-- The carrier map `flattenSplit` is not globally injective: it
+-- collapses off-iterated-graph constructor patterns (see the
+-- comment block above `flattenSplit_injOn_of_disjoint`).
+-- The witnessing InjOn property holds only on the iterated
+-- graph's `J ∪ V`, and only because the disjointness hypothesis
+-- `Disjoint W₁ W₂` rules out the two would-be cross-cell
+-- collisions (`W₁^{0₁}` vs. `W₂^{0₂}` and `W₁^{1₁}` vs.
+-- `W₂^{1₂}`). Without disjointness the InjOn conjunct fails,
+-- and so does the LN's claim "the iterated CDMG equals the
+-- single-step CDMG `G_{spl(W₁ ∪ W₂)}`" -- two split-copies of a
+-- node in `W₁ ∩ W₂` would collide in the iterated graph in a way
+-- the single-step graph cannot reproduce.
+--
+-- ### How disjointness flows in (both orderings)
+--
+-- The technical core is the helper
+-- `flattenSplit_injOn_of_disjoint` above, invoked twice:
+--   * Direction (a) `(G_{spl W₁})_{spl W₂} = G_{spl(W₁ ∪ W₂)}`:
+--     helper applied with `(W₁, W₂, hDisj)` in the natural order.
+--   * Direction (b) `(G_{spl W₂})_{spl W₁} = G_{spl(W₁ ∪ W₂)}`:
+--     helper applied with `(W₂, W₁, hDisj.symm)` -- the iterated
+--     graph in the InjOn obligation swaps inner/outer roles of
+--     `W₁` and `W₂`, and `Disjoint` is symmetric.
+-- Both directions land at the same single-step right-hand side
+-- `G_{spl(W₁ ∪ W₂)}`, recovering the LN's triple-equality
+-- "swap-symmetry" reading via transitivity, exactly as in the
+-- verified tex twin's "Recovery of the LN's triple equality"
+-- closing paragraph.
+-- ## Helper: `imageEqs` -- the 4-conjunct image-only shape (the old `eqViaNodeMap`)
+--
+-- Pre-injectivity-refactor shape of `eqViaNodeMap`, retained as a
+-- private helper so the (substantive, 500-line) proof body of the
+-- pre-refactor `twoDisjointNodeSplittingsCommute` can be re-used by
+-- name to discharge the four image-equality conjuncts. The new
+-- `eqViaNodeMap` adds a `Set.InjOn` conjunct on top of these four.
+def imageEqs {α β : Type*} [DecidableEq α] [DecidableEq β]
+    (G : CDMG α) (G' : CDMG β) (f : α → β) : Prop :=
+  G.J.image f = G'.J
+    ∧ G.V.image f = G'.V
+    ∧ G.E.image (Prod.map f f) = G'.E
+    ∧ G.L.image (Sym2.map f) = G'.L
+
+-- ## Helper: pre-injectivity-refactor `twoDisjointNodeSplittingsCommute`
+--
+-- Returns the four image-equality conjuncts for both iteration orders
+-- (`imageEqs` shape, not `eqViaNodeMap`). The proof body is the
+-- substantive port of the original `twoDisjointNodeSplittingsCommute`
+-- (cdmg_typed_edges refactor). The new public theorem below adds the
+-- two `Set.InjOn` proofs on top.
+private theorem twoDisjointNodeSplittingsCommute_imageEqs (G : CDMG Node)
     (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V)
     (hDisj : Disjoint W₁ W₂) :
-    eqViaNodeMap
+    imageEqs
         ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
             (W₂.image SplitNode.unsplit)
             (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj))
         (G.nodeSplittingOn (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
         flattenSplit
       ∧
-    eqViaNodeMap
+    imageEqs
         ((G.nodeSplittingOn W₂ hW₂).nodeSplittingOn
             (W₁.image SplitNode.unsplit)
             (image_unsplit_subset_nodeSplittingOn_V hW₂ hW₁ hDisj.symm))
         (G.nodeSplittingOn (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
         flattenSplit
--- claim_3_7 -- end statement
-  := by
+:= by
   -- Inline helpers: `flattenSplit` collapses the two-stage
   -- `toCopy0` chain to the single `toCopy0 (A ∪ B)`.
   -- Verbatim port of the original `flatten_toCopy0_toCopy0` with the
@@ -715,6 +977,35 @@ theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
     refine Sym2.map_congr ?_
     intro x _
     exact flatten_refactor_toCopy0_refactor_toCopy0 W₂ W₁ x
+
+-- claim_3_7 -- start statement
+theorem twoDisjointNodeSplittingsCommute (G : CDMG Node)
+    (W₁ W₂ : Finset Node) (hW₁ : W₁ ⊆ G.V) (hW₂ : W₂ ⊆ G.V)
+    (hDisj : Disjoint W₁ W₂) :
+    eqViaNodeMap
+        ((G.nodeSplittingOn W₁ hW₁).nodeSplittingOn
+            (W₂.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingOn_V hW₁ hW₂ hDisj))
+        (G.nodeSplittingOn (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+      ∧
+    eqViaNodeMap
+        ((G.nodeSplittingOn W₂ hW₂).nodeSplittingOn
+            (W₁.image SplitNode.unsplit)
+            (image_unsplit_subset_nodeSplittingOn_V hW₂ hW₁ hDisj.symm))
+        (G.nodeSplittingOn (W₁ ∪ W₂) (Finset.union_subset hW₁ hW₂))
+        flattenSplit
+-- claim_3_7 -- end statement
+  := by
+  -- Reuse the 4-conjunct image equalities from the helper above
+  -- and add the two `Set.InjOn` proofs on top.
+  obtain ⟨⟨hJa, hVa, hEa, hLa⟩, ⟨hJb, hVb, hEb, hLb⟩⟩ :=
+    twoDisjointNodeSplittingsCommute_imageEqs G W₁ W₂ hW₁ hW₂ hDisj
+  refine ⟨⟨?_, hJa, hVa, hEa, hLa⟩, ⟨?_, hJb, hVb, hEb, hLb⟩⟩
+  · -- InjOn for direction (a): iterated split W₁ then W₂
+    exact flattenSplit_injOn_of_disjoint G W₁ W₂ hW₁ hW₂ hDisj
+  · -- InjOn for direction (b): iterated split W₂ then W₁
+    exact flattenSplit_injOn_of_disjoint G W₂ W₁ hW₂ hW₁ hDisj.symm
 
 end CDMG
 

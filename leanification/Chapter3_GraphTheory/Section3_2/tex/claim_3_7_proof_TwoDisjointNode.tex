@@ -1,16 +1,32 @@
 % Claim proof file (REFACTOR TWIN) for row claim_3_7 -- "TwoDisjointNode".
-% This is the twin file produced during the `cdmg_typed_edges` refactor;
-% the original `claim_3_7_proof_TwoDisjointNode.tex` stays untouched until
-% cleanup eventually renames this twin over it.
+% This is the twin file produced during the `eqViaNodeMap_injective`
+% refactor; the existing `claim_3_7_proof_TwoDisjointNode.tex` (itself a
+% prior `cdmg_typed_edges` twin) stays untouched until cleanup at
+% Phase 7 atomically renames this twin over it.
 %
-% Mathematically the LN-level proof is unchanged by the refactor: at the
-% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
-% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
-% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
-% capture. The only prose adjustment versus the original twin is a light
-% rewording of the L-axiom recitation in the statement-restatement block
-% to drop the explicit ordered-pair phrasing and use the unordered-pair
-% phrasing instead; the proof body itself is verbatim from the original.
+% Mathematically the LN-level proof is unchanged by the refactor: the
+% lemma asserts the same triple equality of CDMGs (up to canonical
+% carrier bijection) as before, with the same disjointness side
+% condition on $W_1, W_2 \ins V$ and the same node-splitting
+% construction of def_3_11. The only addition versus the existing
+% `cdmg_typed_edges` twin's proof body is a new ``fifth componentwise
+% check'' paragraph in each of sub-claims (a) and (b) that justifies
+% the strengthened Lean predicate's carrier-map injectivity side
+% condition: with the new shape of `eqViaNodeMap` (refactor
+% `eqViaNodeMap_injective`) carrying a `Set.InjOn f (G.J \cup G.V)`
+% conjunct in addition to the four image-equality conjuncts of the
+% prior shape, the proof now also needs to certify that the canonical
+% carrier bijection of the statement block is injective when restricted
+% to the iterated graph's joint input-output node set. The new
+% paragraphs spell this out as a five-cell case analysis on
+% $J_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}} \cup V_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}}$
+% (and its swapped counterpart for sub-claim (b)), using the
+% disjointness hypothesis $W_1 \cap W_2 = \emptyset$ to rule out the
+% two collision patterns that the LN's identification of carriers
+% otherwise leaves implicit. The rest of the proof body --
+% statement-restatement block, four componentwise checks on
+% $J / V / E / L$, and the closing transitivity argument -- is verbatim
+% from the `cdmg_typed_edges` twin.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
@@ -90,18 +106,33 @@
 
 % --- proof ------------------------------------------------------------------
 % Proof body adapted from the LN's \Claude{...} block at
-% lecture-notes/lecture_notes/graphs.tex lines 466-492, with three light edits:
+% lecture-notes/lecture_notes/graphs.tex lines 466-492, with four light edits:
 % (i) the opening is re-framed to reference the rewrite's (a) and (b) labels
 %     (the LN proves only (a) explicitly and folds (b) into a "by symmetry"
 %     remark; we keep that structure but make the labelling explicit),
 % (ii) the well-typedness of the outer splitting application is cited from
 %      the statement block above rather than restated in full (the LN proof
 %      spells it out in its first sentence; the rewritten statement spells
-%      it out in full, so the proof just refers back), and
+%      it out in full, so the proof just refers back),
 % (iii) the closing "by symmetry" remark for (b) is expanded into an
 %       explicit W_1 <-> W_2 swap + commutativity-of-disjoint-union step,
 %       closing with a transitivity-of-equality remark recovering the LN's
-%       triple equality through the shared right-hand side.
+%       triple equality through the shared right-hand side, and
+% (iv) a new "fifth componentwise check" paragraph -- injectivity of the
+%      canonical carrier bijection on the iterated graph's J \cup V -- is
+%      inserted at the end of each of sub-claims (a) and (b)'s
+%      componentwise verification, just before the "Combining ..." closing
+%      lines.  The new paragraph is *not* in the LN's \Claude proof (the
+%      LN identifies the iterated and single-step carriers implicitly via
+%      the canonical bijection of def_3_11's unsplit-injection convention,
+%      so no injectivity certificate is needed in the LN's reading); it is
+%      added here to underwrite the strengthened Lean-encoding of the
+%      "equality up to canonical bijection of carriers" predicate
+%      `eqViaNodeMap` introduced by refactor `eqViaNodeMap_injective`.
+%      Mathematically it is a straightforward five-cell case analysis on
+%      the iterated graph's J \cup V using the disjointness hypothesis
+%      W_1 \cap W_2 = \emptyset; it lives at the LN/Lean interface and is
+%      not load-bearing for the LN-level mathematics of the lemma.
 \begin{proof}
 We prove sub-claim (a), $\lp G_{\spl(W_1)} \rp_{\spl(W_2)} = G_{\spl(W_1 \dcup W_2)}$, by checking the equality of the two CDMGs componentwise on each of the four components $(J, V, E, L)$ of def \ref{def-cdmg} in turn; sub-claim (b), $\lp G_{\spl(W_2)} \rp_{\spl(W_1)} = G_{\spl(W_1 \dcup W_2)}$, is then obtained by an explicit symmetry argument at the end. Both sub-claims rely on the well-typedness check already established in the statement block above to license the outer $\spl(\cdot)$ application: in particular, by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, every $w \in W_2$ satisfies $w \in V \sm W_1 \ins V_{\spl(W_1)}$ (and symmetrically every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\spl(W_2)}$).
 
@@ -219,11 +250,42 @@ Hence
 \]
 \checkmark
 
+\medskip\noindent\emph{Injectivity of the carrier bijection on the iterated graph's node set.}
+The canonical bijection of carriers spelled out in the notation block above (and in the closing paragraph of the statement block) sends each element of $J_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}} \cup V_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}}$ to its single-step counterpart in $J_{\spl(W_1 \dcup W_2)} \cup V_{\spl(W_1 \dcup W_2)}$ via the rules ``twice-untagged $\mapsto$ untagged'' (i.e., $v \mapsto v$ for $v \in J \cup (V \sm (W_1 \dcup W_2))$) and ``$w^{0_k} \mapsto w^0$, $w^{1_k} \mapsto w^1$'' (for $w \in W_k$, $k \in \{1, 2\}$). We verify that this bijection is moreover \emph{injective} on the source side -- i.e., distinct elements of the iterated graph's joint input-output node set are sent to distinct elements of the single-step graph's joint input-output node set -- by a case analysis on the five-cell partition of the source.
+
+Combining the input-node and output-node identities verified above with item i.\ of def \ref{def:G_node-splitting}'s ``$J_{\spl(\cdot)} = J$'' identity for both the inner and outer splittings, the joint input-output set of the iterated graph decomposes as the disjoint union
+\[
+    J_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}} \cup V_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}}
+    \;=\; \lp J \cup (V \sm W_1 \sm W_2) \rp \;\dcup\; W_1^{0_1} \;\dcup\; W_1^{1_1} \;\dcup\; W_2^{0_2} \;\dcup\; W_2^{1_2},
+\]
+where the first cell collects every element that is untagged at both splittings (whose single-step image is itself untagged, written $v$), and the remaining four cells are the tagged copies introduced by the two splittings (with single-step images $w^0$ resp.\ $w^1$ in $(W_1 \dcup W_2)^0$ resp.\ $(W_1 \dcup W_2)^1$ per the notation block). Disjointness of the five cells inside the iterated graph's joint input-output set follows from items i.\ and ii.\ of def \ref{def:G_node-splitting} together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ (the disjointness side condition on $J \cap V = \emptyset$ from def \ref{def-cdmg} disposes of the $J$-vs.-$V$ piece of the first cell's pairwise disjointness with the four tagged cells, and the tagged copies are pairwise disjoint from the untagged piece by item ii.\ of def \ref{def:G_node-splitting}).
+
+\emph{Within-cell injectivity.} On each of the five cells the bijection acts by a single composed-constructor chain that is injective in the underlying $w$- or $v$-label: ``$v \mapsto v$'' on $J \cup (V \sm W_1 \sm W_2)$, ``$w \mapsto w^0$'' on $W_1^{0_1}$ and on $W_2^{0_2}$, ``$w \mapsto w^1$'' on $W_1^{1_1}$ and on $W_2^{1_2}$. Each of these underlying maps is injective in $w$ (resp.\ $v$) by item ii.\ of def \ref{def:G_node-splitting}'s disjoint-union typing of $V_{\spl(W_1 \dcup W_2)}$ (the single-step copies $w^0$, $w^1$ are pairwise distinct as $w$ ranges over $W_1 \dcup W_2$, by construction of the disjoint union).
+
+\emph{Across-cell injectivity.} It remains to show that no collision occurs between two elements drawn from two different cells of the five-cell partition. The bijection's image on the first cell lands in the untagged piece $J \cup (V \sm (W_1 \dcup W_2))$ of the single-step graph's joint input-output set, while its image on the four tagged cells lands in $(W_1 \dcup W_2)^0 \cup (W_1 \dcup W_2)^1$; these two pieces are disjoint by item ii.\ of def \ref{def:G_node-splitting} (the untagged piece is exactly the complement of the two tagged copies in $V_{\spl(W_1 \dcup W_2)}$, and they are joined disjointly with $J$), so any cross-collision involving the first cell is impossible. Among the four tagged cells, the structural cross-collision patterns to rule out are:
+\begin{itemize}
+    \item \emph{$W_1^{0_1}$ vs.\ $W_2^{0_2}$.} Iterated-graph images $w_1^{0_1}$ (for some $w_1 \in W_1$) and $w_2^{0_2}$ (for some $w_2 \in W_2$) map under the canonical bijection to $w_1^0$ and $w_2^0$, both inside $(W_1 \dcup W_2)^0$. An equality $w_1^0 = w_2^0$ in $(W_1 \dcup W_2)^0$ forces $w_1 = w_2$ by injectivity of the single-step $w \mapsto w^0$ tagging (item ii.\ of def \ref{def:G_node-splitting}, the disjoint-union construction of $(W_1 \dcup W_2)^0$ from $\{w \st w \in W_1 \dcup W_2\}$). But $w_1 \in W_1$ and $w_2 \in W_2$ with $W_1 \cap W_2 = \emptyset$ rules this equality out -- contradiction. So no $W_1^{0_1}$-vs.-$W_2^{0_2}$ collision occurs. \emph{This is the load-bearing use of the disjointness hypothesis $W_1 \cap W_2 = \emptyset$.}
+    \item \emph{$W_1^{1_1}$ vs.\ $W_2^{1_2}$.} Same argument with the $0$-tag replaced by the $1$-tag throughout (using the $w \mapsto w^1$ injectivity of item ii.\ on the $(W_1 \dcup W_2)^1$ side, and the same disjointness hypothesis $W_1 \cap W_2 = \emptyset$).
+    \item \emph{$^0$-tagged cell vs.\ $^1$-tagged cell ($W_1^{0_1}$ vs.\ $W_1^{1_1}$, $W_1^{0_1}$ vs.\ $W_2^{1_2}$, $W_2^{0_2}$ vs.\ $W_1^{1_1}$, $W_2^{0_2}$ vs.\ $W_2^{1_2}$).} On the source side, these are pairs of cells with one mapping into $(W_1 \dcup W_2)^0$ and the other into $(W_1 \dcup W_2)^1$. By item ii.\ of def \ref{def:G_node-splitting}, the two single-step tagged copies $(W_1 \dcup W_2)^0$ and $(W_1 \dcup W_2)^1$ are disjoint by construction (the two-copies clause of the disjoint union ``$(V \sm W) \dcup W^0 \dcup W^1$''), so no $^0$-image can equal any $^1$-image. No collision in any of these four sub-patterns.
+\end{itemize}
+All cross-cell collision patterns have been ruled out, so the canonical bijection of carriers is injective on $J_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}} \cup V_{\lp G_{\spl(W_1)} \rp_{\spl(W_2)}}$. \checkmark
+
 \smallskip
-Combining the four componentwise equalities above, the CDMGs $\lp G_{\spl(W_1)} \rp_{\spl(W_2)}$ and $G_{\spl(W_1 \dcup W_2)}$ agree field by field on each of $(J, V, E, L)$ and are therefore equal as CDMGs (def \ref{def-cdmg}). This establishes sub-claim (a).
+Combining the four componentwise equalities above with the carrier-map injectivity check just established, the CDMGs $\lp G_{\spl(W_1)} \rp_{\spl(W_2)}$ and $G_{\spl(W_1 \dcup W_2)}$ agree field by field on each of $(J, V, E, L)$ -- with the four image-equality identities understood up to the canonical bijection of carriers, which is in turn injective on the iterated graph's joint input-output set -- and are therefore equal as CDMGs (def \ref{def-cdmg}). This establishes sub-claim (a).
 
 \medskip\noindent\textbf{Proof of (b): composition with $W_2$ then $W_1$.}
-Sub-claim (b) is obtained by swapping the roles of $W_1$ and $W_2$ in the argument for (a). The four-component verification above depends on the pair of subsets only through their symbolic roles: the input-node identity holds because each splitting leaves $J$ unchanged, regardless of the split set; the output-node identity, the directed-edge identity, and the bidirected-edge identity each follow from items ii.--iv.\ of def \ref{def:G_node-splitting} together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, which is symmetric in $(W_1, W_2)$ ($W_1 \cap W_2 = \emptyset \Leftrightarrow W_2 \cap W_1 = \emptyset$). The well-typedness side-condition needed to license the outer $\spl(\cdot)$ application also has a symmetric counterpart, established in the statement block: every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\spl(W_2)}$. Re-running the four-component check above with the substitution $W_1 \leftrightarrow W_2$ throughout therefore yields
+Sub-claim (b) is obtained by swapping the roles of $W_1$ and $W_2$ in the argument for (a). The five-component verification above (four image-equality identities plus the carrier-bijection injectivity check) depends on the pair of subsets only through their symbolic roles: the input-node identity holds because each splitting leaves $J$ unchanged, regardless of the split set; the output-node identity, the directed-edge identity, and the bidirected-edge identity each follow from items ii.--iv.\ of def \ref{def:G_node-splitting} together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, which is symmetric in $(W_1, W_2)$ ($W_1 \cap W_2 = \emptyset \Leftrightarrow W_2 \cap W_1 = \emptyset$); and the carrier-bijection injectivity check follows from the same five-cell case analysis with the $^0$-vs.-$^0$ and $^1$-vs.-$^1$ collision patterns ruled out by the same disjointness hypothesis (also symmetric in $(W_1, W_2)$). The well-typedness side-condition needed to license the outer $\spl(\cdot)$ application also has a symmetric counterpart, established in the statement block: every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\spl(W_2)}$.
+
+\medskip\noindent\emph{Injectivity of the carrier bijection on the iterated graph's node set (symmetric counterpart).}
+For sub-claim (b)'s iterated graph $\lp G_{\spl(W_2)} \rp_{\spl(W_1)}$, the carrier-bijection injectivity check is the same as in (a) with the substitution $W_1 \leftrightarrow W_2$ throughout: the joint input-output set of the iterated graph decomposes as the five-cell disjoint union
+\[
+    J_{\lp G_{\spl(W_2)} \rp_{\spl(W_1)}} \cup V_{\lp G_{\spl(W_2)} \rp_{\spl(W_1)}}
+    \;=\; \lp J \cup (V \sm W_1 \sm W_2) \rp \;\dcup\; W_2^{0_2} \;\dcup\; W_2^{1_2} \;\dcup\; W_1^{0_1} \;\dcup\; W_1^{1_1},
+\]
+with the first two tagged cells $W_2^{0_2}, W_2^{1_2}$ now realised by the (inner) $\spl(W_2)$ application and the last two $W_1^{0_1}, W_1^{1_1}$ by the (outer) $\spl(W_1)$ application -- the underlying \emph{set} of the five cells is the same as in (a), but their realisation as iterated-tagged copies inside the iterated graph swaps the inner/outer roles. The canonical bijection still sends each tagged cell $W_k^{\epsilon_k}$ to its single-step image $W_k^{\epsilon}$ inside $(W_1 \dcup W_2)^{\epsilon}$ ($\epsilon \in \{0, 1\}$, $k \in \{1, 2\}$), and the untagged cell to itself. The within-cell injectivity argument is unchanged, and the across-cell analysis uses the same disjointness hypothesis $W_2 \cap W_1 = W_1 \cap W_2 = \emptyset$ to rule out the $^0$-vs.-$^0$ collision pattern ($W_2^{0_2}$ vs.\ $W_1^{0_1}$, which would force a common $w \in W_1 \cap W_2$) and the $^1$-vs.-$^1$ collision pattern ($W_2^{1_2}$ vs.\ $W_1^{1_1}$, same argument), while the remaining $^0$-vs.-$^1$ cross-cell pairs and the untagged-cell-vs.-tagged-cell pairs are ruled out by the same item-ii.\ disjoint-pieces argument as in (a). Hence the canonical bijection of carriers is injective on $J_{\lp G_{\spl(W_2)} \rp_{\spl(W_1)}} \cup V_{\lp G_{\spl(W_2)} \rp_{\spl(W_1)}}$. \checkmark
+
+\medskip
+Re-running the five-component check above (four image-equality identities plus the carrier-bijection injectivity check) with the substitution $W_1 \leftrightarrow W_2$ throughout therefore yields
 \[
     \lp G_{\spl(W_2)} \rp_{\spl(W_1)} \;=\; G_{\spl(W_2 \dcup W_1)}.
 \]

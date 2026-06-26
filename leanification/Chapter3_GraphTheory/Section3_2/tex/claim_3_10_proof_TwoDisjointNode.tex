@@ -1,16 +1,50 @@
-% Claim proof file (REFACTOR TWIN) for row claim_3_10 -- "TwoDisjointNode".
-% This is the twin file produced during the `cdmg_typed_edges` refactor;
-% the original `claim_3_10_proof_TwoDisjointNode.tex` stays untouched until
-% cleanup eventually renames this twin over it.
+% Claim proof file (REFACTOR TWIN) for row claim_3_10 -- "TwoDisjointNode"
+% (SWIG / node-splitting hard intervention variant).
 %
-% Mathematically the LN-level proof is unchanged by the refactor: at the
-% LN level `L` is `a set of unordered pairs of distinct vertices in V`,
-% which both the original `Finset (Node × Node) + hL_symm` Lean encoding
-% and the refactored `Finset (Sym2 Node)` Lean encoding faithfully
-% capture. The only prose adjustment versus the original is a light
-% rewording of the L-axiom recitation in the statement-restatement block
-% to drop the explicit ordered-pair phrasing and use the unordered-pair
-% phrasing instead; the proof body itself is verbatim from the original.
+% This is the twin file produced during the `eqViaNodeMap_injective`
+% refactor; the existing `claim_3_10_proof_TwoDisjointNode.tex` (itself
+% a prior `cdmg_typed_edges` twin) stays untouched until cleanup at
+% Phase 7 atomically renames this twin over it.
+%
+% Mathematically the LN-level proof is unchanged by the refactor: the
+% lemma asserts the same triple equality of CDMGs (up to canonical
+% carrier bijection) as before, with the same disjointness side
+% condition on $W_1, W_2 \ins V$ and the same SWIG construction of
+% def_3_12. The only addition versus the existing `cdmg_typed_edges`
+% twin's proof body is a new ``fifth componentwise check'' paragraph
+% in each of sub-claims (a) and (b) that justifies the strengthened
+% Lean predicate's carrier-map injectivity side condition: with the
+% new shape of `eqViaNodeMap` (refactor `eqViaNodeMap_injective`)
+% carrying a `Set.InjOn f (G.J \cup G.V)` conjunct in addition to the
+% four image-equality conjuncts of the prior shape, the proof now
+% also needs to certify that the canonical carrier bijection of the
+% statement block is injective when restricted to the iterated SWIG's
+% joint input-output node set. The new paragraphs spell this out as
+% a five-cell case analysis on
+% $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}} \cup V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$
+% (and its swapped counterpart for sub-claim (b)), using the
+% disjointness hypothesis $W_1 \cap W_2 = \emptyset$ to rule out the
+% two collision patterns ($W_1^{o_1}$ vs.\ $W_2^{o_2}$ and
+% $W_1^{i_1}$ vs.\ $W_2^{i_2}$) that the LN's identification of
+% carriers otherwise leaves implicit. The rest of the proof body --
+% statement-restatement block, four componentwise checks on
+% $J / V / E / L$, and the closing transitivity argument -- is
+% verbatim from the `cdmg_typed_edges` twin.
+%
+% The SWIG-specific subtlety relative to claim_3_7's
+% `eqViaNodeMap_injective` twin (regular node-splitting) is that
+% def_3_12 places the input-side tagged copies $W^i$ inside
+% $J_{\swig(W)}$, \emph{not} inside $V_{\swig(W)}$ (as item~i.\
+% versus item~ii.\ of def_3_12 records); regular node-splitting
+% (def_3_11) instead places \emph{both} $W^0$ and $W^1$ tagged
+% copies inside $V_{\spl(W)}$. The five-cell partition of the
+% iterated SWIG's joint input-output set therefore distributes
+% the four tagged cells across the $J$-side ($W_1^{i_1}$,
+% $W_2^{i_2}$) and the $V$-side ($W_1^{o_1}$, $W_2^{o_2}$),
+% whereas claim_3_7's analogous partition keeps all four tagged
+% cells on the $V$-side. The total count (5 cells) and the
+% across-cell-collision argument's load-bearing reliance on
+% $W_1 \cap W_2 = \emptyset$ are unchanged.
 %
 % This file is a sibling of `main.tex` inside `<subsection>/tex/`. The
 % `subfiles` package lets it render both standalone and as part of
@@ -125,9 +159,31 @@
 %      triple equality through the shared right-hand side,
 % (vi) a closing ``Carrier-bijection convention'' paragraph acknowledges
 %      the read-up-to-canonical-bijection convention noted at the bottom
-%      of the statement block.
+%      of the statement block,
+% (vii) a new ``fifth componentwise check'' paragraph -- injectivity of the
+%       canonical carrier bijection on the iterated SWIG's J \cup V -- is
+%       inserted at the end of each of sub-claims (a) and (b)'s
+%       componentwise verification, just before the ``Combining ...''
+%       closing lines.  The new paragraph is *not* in the LN's \Claude
+%       proof (the LN identifies the iterated and single-step carriers
+%       implicitly via the canonical bijection of def_3_12's
+%       unsplit-injection convention, so no injectivity certificate is
+%       needed in the LN's reading); it is added here to underwrite the
+%       strengthened Lean-encoding of the ``equality up to canonical
+%       bijection of carriers'' predicate `eqViaNodeMap' introduced by
+%       refactor `eqViaNodeMap_injective'.  Mathematically it is a
+%       straightforward five-cell case analysis on the iterated SWIG's
+%       J \cup V using the disjointness hypothesis W_1 \cap W_2 = \emptyset;
+%       it lives at the LN/Lean interface and is not load-bearing for the
+%       LN-level mathematics of the lemma.  The structural pattern is the
+%       same as in claim_3_7's `eqViaNodeMap_injective' twin (regular
+%       node-splitting), but the SWIG-specific shape of the five-cell
+%       partition redistributes the four tagged cells across the J-side
+%       (W_1^{i_1}, W_2^{i_2}) and the V-side (W_1^{o_1}, W_2^{o_2})
+%       per items i.\ and ii.\ of def_3_12, whereas claim_3_7's regular
+%       splitting keeps all four tagged cells on the V-side.
 \begin{proof}
-We prove sub-claim (a), $\lp G_{\swig(W_1)} \rp_{\swig(W_2)} = G_{\swig(W_1 \dcup W_2)}$, by checking the equality of the two CDMGs componentwise on each of the four components $(J, V, E, L)$ of def \ref{def-cdmg} in turn; sub-claim (b), $\lp G_{\swig(W_2)} \rp_{\swig(W_1)} = G_{\swig(W_1 \dcup W_2)}$, is then obtained by an explicit symmetry argument at the end. Both sub-claims rely on the well-typedness check already established in the statement block above to license the outer $\swig(\cdot)$ application: in particular, by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, every $w \in W_2$ satisfies $w \in V \sm W_1 \ins V_{\swig(W_1)}$ (and symmetrically every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\swig(W_2)}$).
+We prove sub-claim (a), $\lp G_{\swig(W_1)} \rp_{\swig(W_2)} = G_{\swig(W_1 \dcup W_2)}$, by checking the equality of the two CDMGs componentwise on each of the four components $(J, V, E, L)$ of def \ref{def-cdmg} in turn, followed by a fifth check that the canonical carrier bijection of the statement block is injective on the iterated SWIG's joint input-output node set; sub-claim (b), $\lp G_{\swig(W_2)} \rp_{\swig(W_1)} = G_{\swig(W_1 \dcup W_2)}$, is then obtained by an explicit symmetry argument at the end. Both sub-claims rely on the well-typedness check already established in the statement block above to license the outer $\swig(\cdot)$ application: in particular, by the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, every $w \in W_2$ satisfies $w \in V \sm W_1 \ins V_{\swig(W_1)}$ (and symmetrically every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\swig(W_2)}$).
 
 \smallskip\noindent\emph{Notation for SWIG copies.}
 For $k \in \{1, 2\}$ and $w \in W_k$, write $w^{o_k}$ and $w^{i_k}$ for the two tagged copies produced by $\swig(W_k)$ per def \ref{def:G_node-splitting_intervention}; the subscript $k$ records which of the two SWIG steps introduced the tag. The output-side copy $w^{o_k}$ sits in $V_{\swig(W_k)}$ while the input-side copy $w^{i_k}$ sits in $J_{\swig(W_k)}$ (items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}), in contrast to regular node-splitting (def \ref{def:G_node-splitting}) where both tagged copies sit in the output-node set. By def \ref{def:G_node-splitting_intervention}'s unsplit-injection shorthand, $v^{o_k} := v^{i_k} := v$ for $v \in J \cup (V \sm W_k)$. For an element $v \in J \cup V$ we will also write $v^i$ and $v^o$ for the single-step tagging used on $G_{\swig(W_1 \dcup W_2)}$:
@@ -219,11 +275,42 @@ Hence
 \[ L_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}} \;=\; L_{\swig(W_1 \dcup W_2)}. \]
 \checkmark
 
+\medskip\noindent\emph{Injectivity of the carrier bijection on the iterated SWIG's node set.}
+The canonical bijection of carriers spelled out in the notation block above (and in the closing paragraph of the statement block) sends each element of $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}} \cup V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$ to its single-step counterpart in $J_{\swig(W_1 \dcup W_2)} \cup V_{\swig(W_1 \dcup W_2)}$ via the rules ``twice-untagged $\mapsto$ untagged'' (i.e., $v \mapsto v$ for $v \in J \cup (V \sm (W_1 \dcup W_2))$) and ``$w^{i_k} \mapsto w^i$, $w^{o_k} \mapsto w^o$'' (for $w \in W_k$, $k \in \{1, 2\}$). We verify that this bijection is moreover \emph{injective} on the source side -- i.e., distinct elements of the iterated SWIG's joint input-output node set are sent to distinct elements of the single-step SWIG's joint input-output node set -- by a case analysis on the five-cell partition of the source.
+
+Combining the input-node and output-node identities verified above, the joint input-output set of the iterated SWIG decomposes as the disjoint union
+\[
+    J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}} \cup V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}
+    \;=\; \lp J \cup (V \sm W_1 \sm W_2) \rp \;\dcup\; W_1^{i_1} \;\dcup\; W_1^{o_1} \;\dcup\; W_2^{i_2} \;\dcup\; W_2^{o_2},
+\]
+where the first cell collects every element that is untagged at both SWIGs (whose single-step image is itself untagged, written $v$), and the remaining four cells are the tagged copies introduced by the two SWIGs: the input-side copies $W_1^{i_1}$, $W_2^{i_2}$ (sitting on the $J$-side of the iterated SWIG per item~i.\ of def \ref{def:G_node-splitting_intervention}, with single-step images $w^i$ in $(W_1 \dcup W_2)^i$ per the notation block) and the output-side copies $W_1^{o_1}$, $W_2^{o_2}$ (sitting on the $V$-side per item~ii., with single-step images $w^o$ in $(W_1 \dcup W_2)^o$). Disjointness of the five cells inside the iterated SWIG's joint input-output set follows from items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention} together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$ (the def \ref{def-cdmg} axiom $J \cap V = \emptyset$ at the inner SWIG disposes of cross-$J$/$V$ pairs of cells, and the tagged copies are pairwise disjoint from the untagged piece by items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}).
+
+\emph{Within-cell injectivity.} On each of the five cells the bijection acts by a single composed-constructor chain that is injective in the underlying $w$- or $v$-label: ``$v \mapsto v$'' on $J \cup (V \sm W_1 \sm W_2)$, ``$w \mapsto w^i$'' on $W_1^{i_1}$ and on $W_2^{i_2}$, ``$w \mapsto w^o$'' on $W_1^{o_1}$ and on $W_2^{o_2}$. Each of these underlying maps is injective in $w$ (resp.\ $v$) by items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}'s disjoint-union typing of $J_{\swig(W_1 \dcup W_2)}$ and $V_{\swig(W_1 \dcup W_2)}$ (the single-step copies $w^i$, $w^o$ are pairwise distinct as $w$ ranges over $W_1 \dcup W_2$, by construction of the disjoint union).
+
+\emph{Across-cell injectivity.} It remains to show that no collision occurs between two elements drawn from two different cells of the five-cell partition. The bijection's image on the first cell lands in the untagged piece $J \cup (V \sm (W_1 \dcup W_2))$ of the single-step SWIG's joint input-output set, while its image on the four tagged cells lands in $(W_1 \dcup W_2)^i \cup (W_1 \dcup W_2)^o$; these two pieces are disjoint by items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention} (the untagged piece is exactly the complement of the two tagged copies in $J_{\swig(W_1 \dcup W_2)} \cup V_{\swig(W_1 \dcup W_2)}$, and the tagged copies are joined disjointly with $J$ and $V \sm (W_1 \dcup W_2)$), so any cross-collision involving the first cell is impossible. Among the four tagged cells, the structural cross-collision patterns to rule out are:
+\begin{itemize}
+    \item \emph{$W_1^{o_1}$ vs.\ $W_2^{o_2}$.} Iterated-SWIG images $w_1^{o_1}$ (for some $w_1 \in W_1$) and $w_2^{o_2}$ (for some $w_2 \in W_2$) map under the canonical bijection to $w_1^o$ and $w_2^o$, both inside $(W_1 \dcup W_2)^o$. An equality $w_1^o = w_2^o$ in $(W_1 \dcup W_2)^o$ forces $w_1 = w_2$ by injectivity of the single-step $w \mapsto w^o$ tagging (item~ii.\ of def \ref{def:G_node-splitting_intervention}, the disjoint-union construction of $(W_1 \dcup W_2)^o$ from $\{w \st w \in W_1 \dcup W_2\}$). But $w_1 \in W_1$ and $w_2 \in W_2$ with $W_1 \cap W_2 = \emptyset$ rules this equality out -- contradiction. So no $W_1^{o_1}$-vs.-$W_2^{o_2}$ collision occurs. \emph{This is one of the two load-bearing uses of the disjointness hypothesis $W_1 \cap W_2 = \emptyset$.}
+    \item \emph{$W_1^{i_1}$ vs.\ $W_2^{i_2}$.} Same argument with the $o$-tag replaced by the $i$-tag throughout (using the $w \mapsto w^i$ injectivity of item~i.\ on the $(W_1 \dcup W_2)^i$ side, and the same disjointness hypothesis $W_1 \cap W_2 = \emptyset$). \emph{This is the other load-bearing use of the disjointness hypothesis.}
+    \item \emph{$^o$-tagged cell vs.\ $^i$-tagged cell ($W_1^{o_1}$ vs.\ $W_1^{i_1}$, $W_1^{o_1}$ vs.\ $W_2^{i_2}$, $W_2^{o_2}$ vs.\ $W_1^{i_1}$, $W_2^{o_2}$ vs.\ $W_2^{i_2}$).} On the source side, these are pairs of cells with one mapping into $(W_1 \dcup W_2)^o$ and the other into $(W_1 \dcup W_2)^i$. By items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}, the two single-step tagged copies $(W_1 \dcup W_2)^o$ and $(W_1 \dcup W_2)^i$ are disjoint by construction (the input-side tags live inside $J_{\swig(W_1 \dcup W_2)}$ and the output-side tags inside $V_{\swig(W_1 \dcup W_2)}$, and $J \cap V = \emptyset$ at the single-step SWIG by def \ref{def-cdmg}); so no $^o$-image can equal any $^i$-image. No collision in any of these four sub-patterns.
+\end{itemize}
+All cross-cell collision patterns have been ruled out, so the canonical bijection of carriers is injective on $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}} \cup V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$. \checkmark
+
 \smallskip
-Combining the four componentwise equalities above, the CDMGs $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$ and $G_{\swig(W_1 \dcup W_2)}$ agree field by field on each of $(J, V, E, L)$ and are therefore equal as CDMGs (def \ref{def-cdmg}). This establishes sub-claim (a).
+Combining the four componentwise equalities above with the carrier-map injectivity check just established, the CDMGs $\lp G_{\swig(W_1)} \rp_{\swig(W_2)}$ and $G_{\swig(W_1 \dcup W_2)}$ agree field by field on each of $(J, V, E, L)$ -- with the four image-equality identities understood up to the canonical bijection of carriers, which is in turn injective on the iterated SWIG's joint input-output set -- and are therefore equal as CDMGs (def \ref{def-cdmg}). This establishes sub-claim (a).
 
 \medskip\noindent\textbf{Proof of (b): composition with $W_2$ then $W_1$.}
-Sub-claim (b) is obtained by swapping the roles of $W_1$ and $W_2$ in the argument for (a). The four-component verification above depends on the pair of subsets only through their symbolic roles: the input-node identity and the output-node identity follow from items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}; the directed-edge and bidirected-edge identities follow from items~iii.\ and~iv., respectively, together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, which is symmetric in $(W_1, W_2)$ ($W_1 \cap W_2 = \emptyset \Leftrightarrow W_2 \cap W_1 = \emptyset$). The well-typedness side-condition needed to license the outer $\swig(\cdot)$ application also has a symmetric counterpart, established in the statement block: every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\swig(W_2)}$. Re-running the four-component check above with the substitution $W_1 \leftrightarrow W_2$ throughout therefore yields
+Sub-claim (b) is obtained by swapping the roles of $W_1$ and $W_2$ in the argument for (a). The five-component verification above (four image-equality identities plus the carrier-bijection injectivity check) depends on the pair of subsets only through their symbolic roles: the input-node identity and the output-node identity follow from items~i.\ and~ii.\ of def \ref{def:G_node-splitting_intervention}; the directed-edge and bidirected-edge identities follow from items~iii.\ and~iv., respectively, together with the disjointness hypothesis $W_1 \cap W_2 = \emptyset$, which is symmetric in $(W_1, W_2)$ ($W_1 \cap W_2 = \emptyset \Leftrightarrow W_2 \cap W_1 = \emptyset$); and the carrier-bijection injectivity check follows from the same five-cell case analysis with the $^o$-vs.-$^o$ and $^i$-vs.-$^i$ collision patterns ruled out by the same disjointness hypothesis (also symmetric in $(W_1, W_2)$). The well-typedness side-condition needed to license the outer $\swig(\cdot)$ application also has a symmetric counterpart, established in the statement block: every $w \in W_1$ satisfies $w \in V \sm W_2 \ins V_{\swig(W_2)}$.
+
+\medskip\noindent\emph{Injectivity of the carrier bijection on the iterated SWIG's node set (symmetric counterpart).}
+For sub-claim (b)'s iterated SWIG $\lp G_{\swig(W_2)} \rp_{\swig(W_1)}$, the carrier-bijection injectivity check is the same as in (a) with the substitution $W_1 \leftrightarrow W_2$ throughout: the joint input-output set of the iterated SWIG decomposes as the five-cell disjoint union
+\[
+    J_{\lp G_{\swig(W_2)} \rp_{\swig(W_1)}} \cup V_{\lp G_{\swig(W_2)} \rp_{\swig(W_1)}}
+    \;=\; \lp J \cup (V \sm W_1 \sm W_2) \rp \;\dcup\; W_2^{i_2} \;\dcup\; W_2^{o_2} \;\dcup\; W_1^{i_1} \;\dcup\; W_1^{o_1},
+\]
+with the first two tagged cells $W_2^{i_2}, W_2^{o_2}$ now realised by the (inner) $\swig(W_2)$ application and the last two $W_1^{i_1}, W_1^{o_1}$ by the (outer) $\swig(W_1)$ application -- the underlying \emph{set} of the five cells is the same as in (a), but their realisation as iterated-tagged copies inside the iterated SWIG swaps the inner/outer roles. The canonical bijection still sends each tagged cell $W_k^{\epsilon_k}$ (with $\epsilon \in \{o, i\}$ and $k \in \{1, 2\}$) to its single-step image $W_k^{\epsilon}$ inside $(W_1 \dcup W_2)^{\epsilon}$, and the untagged cell to itself. The within-cell injectivity argument is unchanged, and the across-cell analysis uses the same disjointness hypothesis $W_2 \cap W_1 = W_1 \cap W_2 = \emptyset$ to rule out the $^o$-vs.-$^o$ collision pattern ($W_2^{o_2}$ vs.\ $W_1^{o_1}$, which would force a common $w \in W_1 \cap W_2$) and the $^i$-vs.-$^i$ collision pattern ($W_2^{i_2}$ vs.\ $W_1^{i_1}$, same argument), while the remaining $^o$-vs.-$^i$ cross-cell pairs and the untagged-cell-vs.-tagged-cell pairs are ruled out by the same items-i.-and-ii.\ disjoint-pieces argument as in (a) (recalling that $^i$-tagged copies sit in $J_{\swig(\cdot)}$ and $^o$-tagged copies sit in $V_{\swig(\cdot)}$ at every level of the iteration). Hence the canonical bijection of carriers is injective on $J_{\lp G_{\swig(W_2)} \rp_{\swig(W_1)}} \cup V_{\lp G_{\swig(W_2)} \rp_{\swig(W_1)}}$. \checkmark
+
+\medskip
+Re-running the five-component check above (four image-equality identities plus the carrier-bijection injectivity check) with the substitution $W_1 \leftrightarrow W_2$ throughout therefore yields
 \[ \lp G_{\swig(W_2)} \rp_{\swig(W_1)} \;=\; G_{\swig(W_2 \dcup W_1)}. \]
 This is precisely sub-claim (a) instantiated at the swapped pair $(W_2, W_1)$. We emphasise that sub-claim (b) is \emph{not} a literal instance of (a): the iterated SWIG on the left-hand side of (b) is built from the swapped pair $(W_2, W_1)$, and the right-hand-side disjoint union appearing in (a) for that swapped pair is $W_2 \dcup W_1$, not the $W_1 \dcup W_2$ in the statement of (b). The two right-hand sides agree by commutativity of disjoint union, $W_2 \dcup W_1 = W_1 \dcup W_2$, which gives
 \[ G_{\swig(W_2 \dcup W_1)} \;=\; G_{\swig(W_1 \dcup W_2)} \]
@@ -237,7 +324,7 @@ By sub-claims (a) and (b) -- both of which equate their respective iterated SWIG
 which is the LN's stated triple equality and in particular recovers the swap-symmetry reading $\lp G_{\swig(W_1)} \rp_{\swig(W_2)} = \lp G_{\swig(W_2)} \rp_{\swig(W_1)}$.
 
 \medskip\noindent\emph{Carrier-bijection convention.}
-The equalities above are read up to the canonical bijection of iterated and single-step SWIG node-set carriers spelled out at the bottom of the statement block: the iterated carriers $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$, $V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$ and their single-step counterparts $J_{\swig(W_1 \dcup W_2)}$, $V_{\swig(W_1 \dcup W_2)}$ are not literally the same sets as produced by def \ref{def:G_node-splitting_intervention}, but the corresponding pairs are canonically identified by matching tagged copies. Under the Lean \texttt{SplitNode} encoding, this identification is exactly the \texttt{flattenSplit} map introduced in \ref{claim_3_7} (which collapses \texttt{SplitNode (SplitNode Node)} onto \texttt{SplitNode Node} by sending nested \texttt{copy0}/\texttt{copy1}/\texttt{unsplit} constructors to the appropriate single-level constructor, and is imported verbatim by the present row's Lean file); the equalities ``$=$'' in sub-claims (a) and (b) above and in the LN's displayed triple equality are read along that map.
+The equalities above are read up to the canonical bijection of iterated and single-step SWIG node-set carriers spelled out at the bottom of the statement block: the iterated carriers $J_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$, $V_{\lp G_{\swig(W_1)} \rp_{\swig(W_2)}}$ and their single-step counterparts $J_{\swig(W_1 \dcup W_2)}$, $V_{\swig(W_1 \dcup W_2)}$ are not literally the same sets as produced by def \ref{def:G_node-splitting_intervention}, but the corresponding pairs are canonically identified by matching tagged copies. Under the Lean \texttt{SplitNode} encoding, this identification is exactly the \texttt{flattenSplit} map introduced in \ref{claim_3_7} (which collapses \texttt{SplitNode (SplitNode Node)} onto \texttt{SplitNode Node} by sending nested \texttt{copy0}/\texttt{copy1}/\texttt{unsplit} constructors to the appropriate single-level constructor, and is imported verbatim by the present row's Lean file); the equalities ``$=$'' in sub-claims (a) and (b) above and in the LN's displayed triple equality are read along that map. Under the strengthened ``equality up to canonical bijection of carriers'' predicate \texttt{eqViaNodeMap} of refactor \texttt{eqViaNodeMap\_injective}, the per-sub-claim ``Injectivity of the carrier bijection on the iterated SWIG's node set'' paragraphs above further certify that \texttt{flattenSplit} is injective on the iterated SWIG's joint input-output node set, supplying the fifth conjunct (\texttt{Set.InjOn}) of the strengthened Lean predicate alongside the four image-equality identities of $(J, V, E, L)$.
 \end{proof}
 
 \end{document}
