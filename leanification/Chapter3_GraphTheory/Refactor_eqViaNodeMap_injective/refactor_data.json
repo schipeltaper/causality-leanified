@@ -829,10 +829,10 @@
       "section": "3.2",
       "title": "MarginalizingOutThe",
       "type": "lemma",
-      "formalized": "no",
-      "proven": "n/a",
-      "solved": "no",
-      "date_solved": null,
+      "formalized": "yes",
+      "proven": "proven",
+      "solved": "yes",
+      "date_solved": "2026-06-26",
       "tips": "Refactored on 2026-06-19 via `cdmg_typed_edges` (see leanification/Chapter*/Refactor_cdmg_typed_edges_DONE_*/refactor_data.json).\n\nREFACTOR row. This row is a DEPENDENT in refactor `eqViaNodeMap_injective`; it was pulled in because root(s) `claim_3_7` changed underneath it. The original declaration and tex block live at the same `main_lean_file` / `tex_file` paths as this row points at -- read them first as inspiration. Use the same-file marker convention from manager.md (## Refactor rows) to add the replacement alongside the original; the cleanup script will swap them atomically at the end of the table.",
       "tex_file": "graphs.tex",
       "main_lean_file": "leanification/Chapter3_GraphTheory/Section3_2/MarginalizingOutThe.lean",
@@ -842,17 +842,17 @@
       "actions_tracking": {
         "expand_proof": 0,
         "correct_tex_proof": 0,
-        "verify_tex_proof": 0,
-        "review_design": 0,
-        "verify_equivalence": 0,
+        "verify_tex_proof": 1,
+        "review_design": 1,
+        "verify_equivalence": 1,
         "verify_equivalence_strict": 0,
         "verify_with_examples": 0,
         "add_design_choice_comments": 0,
-        "solved": 0,
+        "solved": 1,
         "refactor": 0,
         "make_plan": 0,
         "decompose": 0,
-        "spawn_agent_sub_task": 0,
+        "spawn_agent_sub_task": 2,
         "continue_agent": 0,
         "new_manager": 0,
         "reorder": 0,
@@ -865,11 +865,110 @@
         "no_action": 0,
         "verify_tex_statement_only": 0,
         "verify_tex_statement_equivalence": 0,
-        "verify_tex_statement_plus_proof": 0
+        "verify_tex_statement_plus_proof": 1
       },
       "tex_block": "\\begin{claimmark}\n\\begin{Lem}[Marginalizing out the output part of splitted nodes equals hard intervention]\n     Let $G=(J,V,E,L)$ be a CDMG and $W \\ins V$ be a subset of output nodes from $G$.\n     Then the CDMG that arises by first splitting the nodes on $W$\n      and then marginalizing out the nodes from $W^o$\n     can be identified with the CDMG that arises by hard intervention on $W$:\n     \\[ G_{\\doit(W)} \\cong \\lp G_{\\swig(W)}\\rp^{\\sm W^o}, \\qquad w \\mapsto w^i. \\]\n\\end{Lem}\n\\end{claimmark}",
-      "agent_registry": [],
-      "time_needed_to_solve": 0,
+      "agent_registry": [
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "bcad0f76-864e-4e3a-9a5b-efa1f555a963",
+          "first_seen": "2026-06-26T02:27:19+00:00",
+          "last_used": "2026-06-26T02:27:19+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "fff96ded-1bc1-47a2-aa16-e41b425427ac",
+          "first_seen": "2026-06-26T02:34:24+00:00",
+          "last_used": "2026-06-26T02:34:24+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "69169ec5-b582-485e-a357-4e1496a115f0",
+          "first_seen": "2026-06-26T02:34:57+00:00",
+          "last_used": "2026-06-26T02:34:57+00:00"
+        },
+        {
+          "kind": "verify_tex_statement_plus_proof",
+          "spawned_by": "manager",
+          "session_id": "dfea7f2e-5c02-4d85-a186-107dbc391589",
+          "first_seen": "2026-06-26T02:35:13+00:00",
+          "last_used": "2026-06-26T02:35:13+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "6175420d-0996-4848-8e04-5482395ad9b3",
+          "first_seen": "2026-06-26T02:35:59+00:00",
+          "last_used": "2026-06-26T02:35:59+00:00"
+        },
+        {
+          "kind": "verify_tex_proof",
+          "spawned_by": "manager",
+          "session_id": "fa335e62-9d3f-40bd-a96b-5bd267649cb1",
+          "first_seen": "2026-06-26T02:38:41+00:00",
+          "last_used": "2026-06-26T02:38:41+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "02ed8cd6-726d-4450-9751-42b7266ea095",
+          "first_seen": "2026-06-26T02:39:59+00:00",
+          "last_used": "2026-06-26T02:39:59+00:00"
+        },
+        {
+          "kind": "spawn_agent_sub_task",
+          "spawned_by": "manager",
+          "session_id": "712ce071-e1eb-4985-af73-16e2b8a35199",
+          "first_seen": "2026-06-26T02:50:53+00:00",
+          "last_used": "2026-06-26T02:50:53+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "4c4f0dc7-ec2c-4d9a-b964-d5565ddb1f00",
+          "first_seen": "2026-06-26T02:51:54+00:00",
+          "last_used": "2026-06-26T02:51:54+00:00"
+        },
+        {
+          "kind": "review_design",
+          "spawned_by": "manager",
+          "session_id": "83344928-b1b6-449b-9d3b-25a14467f126",
+          "first_seen": "2026-06-26T02:55:00+00:00",
+          "last_used": "2026-06-26T02:55:00+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "1451461f-2f71-4fa2-9670-61dfe489d687",
+          "first_seen": "2026-06-26T02:56:15+00:00",
+          "last_used": "2026-06-26T02:56:15+00:00"
+        },
+        {
+          "kind": "verify_equivalence",
+          "spawned_by": "manager",
+          "session_id": "cd8ef171-db0e-441c-b42f-3a90c4f6a5ad",
+          "first_seen": "2026-06-26T03:00:44+00:00",
+          "last_used": "2026-06-26T03:00:44+00:00"
+        },
+        {
+          "kind": "manager",
+          "spawned_by": "manager",
+          "session_id": "ae332dd7-ff0f-48c3-9aa9-6f33f4758710",
+          "first_seen": "2026-06-26T03:01:27+00:00",
+          "last_used": "2026-06-26T03:01:27+00:00"
+        },
+        {
+          "kind": "verify_row_solved",
+          "spawned_by": "manager",
+          "session_id": "bdb472db-c796-4a5d-b533-cac55602118a",
+          "first_seen": "2026-06-26T03:03:54+00:00",
+          "last_used": "2026-06-26T03:03:54+00:00"
+        }
+      ],
+      "time_needed_to_solve": 2750,
       "addition_to_the_LN": "",
       "wording_check": {
         "done": true,

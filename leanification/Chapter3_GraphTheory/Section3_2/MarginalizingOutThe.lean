@@ -346,6 +346,7 @@ private lemma swig_marginalization_phi_L_W_copy0_iff
     · intro x hx
       exact (List.not_mem_nil hx).elim
 
+-- REFACTOR-BLOCK-ORIGINAL-BEGIN: marginalize_swig_eq_doit
 -- Refactor port of `marginalize_swig_eq_doit`.  J / V / E sub-goals
 -- port mechanically (the refactor leaves these fields untouched);
 -- the L sub-goal is restructured around `Sym2.map` and `Sym2.ind`.
@@ -644,6 +645,115 @@ theorem marginalize_swig_eq_doit (G : CDMG Node)
                   ← Sym2.map_mk]
               exact hs₀_map]
         exact hpair_eq
+-- REFACTOR-BLOCK-ORIGINAL-END: marginalize_swig_eq_doit
+
+-- REFACTOR-BLOCK-REPLACEMENT-BEGIN: marginalize_swig_eq_doit (was: refactor_marginalize_swig_eq_doit)
+-- ## Refactor: `refactor_marginalize_swig_eq_doit`
+--
+-- Refactor of `marginalize_swig_eq_doit` for refactor
+-- `eqViaNodeMap_injective`. Same statement structure as the
+-- original (a single `eqViaNodeMap` equality between the
+-- hard-intervention CDMG `G_{doit(W)}` and the marginalized SWIG
+-- `(G_{swig(W)})^{∖ W^o}` via the carrier map
+-- `toCopy1 W : Node → SplitNode Node`), but the predicate
+-- `eqViaNodeMap` is replaced by the strengthened
+-- `refactor_eqViaNodeMap` (carrying a fifth `Set.InjOn` conjunct
+-- on the carrier map on the source CDMG's joint input-output
+-- node set).
+--
+-- ### What's reused from the original
+--
+-- The four image-equality conjuncts (`J`, `V`, `E`, `L`) come
+-- straight from the existing (unchanged) `marginalize_swig_eq_doit`
+-- via the destructuring binder `obtain ⟨hJ, hV, hE, hL⟩ := ...`
+-- in the opening line of the proof. The refactor does NOT redo
+-- the ~280-line J / V / E / L bookkeeping -- it would produce a
+-- bit-for-bit identical tactic block, so reusing the original
+-- keeps the LN-to-Lean correspondence one-to-one. The new content
+-- is purely the `Set.InjOn` discharge (the single `refine`
+-- underscore below the destructure).
+--
+-- ### Why the InjOn discharge is short (NOT load-bearing on disjointness)
+--
+-- In contrast to `claim_3_7`'s
+-- `refactor_twoDisjointNodeSplittingsCommute` (where the InjOn
+-- discharge for `flattenSplit` consumes the disjointness
+-- hypothesis `Disjoint W₁ W₂` to rule out two would-be
+-- cross-cell collisions of two iterated splittings), this row's
+-- carrier map `toCopy1 W : Node → SplitNode Node` is in fact
+-- globally injective on `Node`: by `def_3_11`'s definition,
+-- `toCopy1 W v = .copy1 v` for `v ∈ W` and
+-- `toCopy1 W v = .unsplit v` for `v ∉ W`, two type-disjoint
+-- pieces of the `SplitNode` tagged-sum carrier. Within-branch
+-- injectivity is by the constructor injection lemmas
+-- (`.copy1.inj` / `.unsplit.inj`); across-branch collisions are
+-- ruled out by constructor mismatch (`.copy1 _ ≠ .unsplit _` by
+-- `noConfusion`). No extra side condition beyond the lemma's
+-- standing hypothesis `W ⊆ G.V` is consumed, matching the
+-- verified tex twin's "Injectivity of the carrier bijection on
+-- the source CDMG's node set" paragraph (which explicitly
+-- contrasts with `claim_3_7`'s twin on this point: the
+-- three-cell partition `J ⊔ (V ∖ W) ⊔ W` of the source
+-- `J ∪ V = J_{doit(W)} ∪ V_{doit(W)}` is pairwise disjoint by
+-- `def_3_1`'s `hJV_disj` and set algebra alone, and the
+-- tagged-copy disjoint-union construction of `def_3_11` /
+-- `def_3_12` rules out across-cell collisions structurally).
+--
+-- ### Carrier-set definitional unfolding
+--
+-- The InjOn obligation's carrier set is
+-- `↑(G.hardInterventionOn W _).J ∪ ↑(G.hardInterventionOn W _).V`
+-- (Set union of the Finset.coe of the J and V fields).  By
+-- `def_3_10`'s definitional unfolding, this is
+-- `↑(G.J ∪ W) ∪ ↑(G.V \ W)`. The proof below does not unfold
+-- this carrier set: the InjOn conclusion (distinct inputs map
+-- to distinct outputs) is independent of the carrier membership
+-- precisely because `toCopy1 W` is globally injective on `Node`,
+-- so the `hx` / `hy` hypotheses are not consumed (anonymous
+-- `_` binders below).
+-- claim_3_19 -- start statement
+theorem refactor_marginalize_swig_eq_doit (G : CDMG Node)
+    (hG : G.IsCADMG) (W : Finset Node) (hW : W ⊆ G.V) :
+    refactor_eqViaNodeMap
+        (G.hardInterventionOn W (subset_J_union_V_of_subset_V hW))
+        ((G.nodeSplittingHard hG W hW).marginalize
+            (W.image SplitNode.copy0)
+            image_copy0_subset_nodeSplittingHard_V)
+        (toCopy1 W)
+-- claim_3_19 -- end statement
+:= by
+  -- Reuse the original theorem for the four image-equality
+  -- conjuncts (J, V, E, L).
+  obtain ⟨hJ, hV, hE, hL⟩ := marginalize_swig_eq_doit G hG W hW
+  refine ⟨?_, hJ, hV, hE, hL⟩
+  -- InjOn discharge: `toCopy1 W` is globally injective on `Node`,
+  -- so in particular it is InjOn on the source carrier set
+  -- `↑(G.J ∪ W) ∪ ↑(G.V \ W)`. The proof is a 2 × 2 case split
+  -- on `x ∈ W` / `y ∈ W`, mirroring the tex twin's three-cell
+  -- partition (with the `J` and `V \ W` cells collapsed into
+  -- the single "x ∉ W" branch since `toCopy1 W` acts uniformly
+  -- on them).
+  intro x _ y _ heq
+  by_cases hxW : x ∈ W
+  · by_cases hyW : y ∈ W
+    · -- Both in W: heq reduces to `.copy1 x = .copy1 y`; injection.
+      unfold toCopy1 at heq
+      rw [if_pos hxW, if_pos hyW] at heq
+      injection heq
+    · -- x ∈ W, y ∉ W: heq is `.copy1 x = .unsplit y`; constructor mismatch.
+      unfold toCopy1 at heq
+      rw [if_pos hxW, if_neg hyW] at heq
+      cases heq
+  · by_cases hyW : y ∈ W
+    · -- x ∉ W, y ∈ W: symmetric constructor mismatch.
+      unfold toCopy1 at heq
+      rw [if_neg hxW, if_pos hyW] at heq
+      cases heq
+    · -- Both ∉ W: heq reduces to `.unsplit x = .unsplit y`; injection.
+      unfold toCopy1 at heq
+      rw [if_neg hxW, if_neg hyW] at heq
+      injection heq
+-- REFACTOR-BLOCK-REPLACEMENT-END: marginalize_swig_eq_doit
 
 end CDMG
 
